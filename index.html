@@ -248,8 +248,19 @@
     <!-- ===================== DISCOUNTS ===================== -->
     <div class="view" id="view-discounts">
       <div class="card">
-        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Скидки — детально</div>
-        <div id="discountsDetailFull" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+          <div style="font-size:13px; font-weight:600;">Динамика скидок</div>
+          <div id="discTrendSub" style="font-size:12px; color:var(--text-muted);"></div>
+        </div>
+        <div style="position:relative; height:220px;">
+          <canvas id="discTrendChart" role="img" aria-label="Динамика суммы скидок"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Скидки по месяцам</div>
+        <div style="overflow-x:auto;">
+          <table id="discountsTable" style="width:100%; border-collapse:collapse; font-size:13px;"></table>
+        </div>
       </div>
     </div>
 
@@ -385,6 +396,10 @@ function populateMonthSelect() {
   sel.addEventListener('change', () => {
     currentMonth = sel.value;
     renderAll();
+    if (currentView === 'discounts') {
+      renderDiscountsView();
+      document.getElementById('pageSub').textContent = viewTitles.discounts[1];
+    }
   });
 }
 
@@ -862,12 +877,101 @@ function renderClientsView() {
     <div style="font-size:13px; font-weight:600; margin:14px 0 6px;">Источники записи</div>
   ` + sources.map(s => `<div class="detail-row"><span>${s.name}</span><span><b>${s.sharePct}%</b> · ${s.count} зап.</span></div>`).join('');
 }
+let discTrendChartInstance = null;
 function renderDiscountsView() {
-  const c = MONTHLY_DATA[currentMonth];
-  const el = document.getElementById('discountsDetailFull');
-  el.innerHTML = `<div class="detail-row"><span>Сумма скидок</span><span><b>${fmtRub(c.discountTotal)}</b></span></div>` +
-    `<div class="detail-row"><span>Доля от услуг+скидка</span><span><b>${c.discountPctOfServices}%</b></span></div>` +
-    (c.discountByLabel||[]).map(l => `<div class="detail-row"><span>${l.name}</span><span><b>${fmtRub(l.amount)}</b></span></div>`).join('');
+  const idx = monthsSorted.indexOf(currentMonth);
+  const from = Math.max(0, idx - 5);
+  const trailMonths = monthsSorted.slice(from, idx + 1);
+  const monthData = trailMonths.map(m => MONTHLY_DATA[m]);
+
+  document.getElementById('discTrendSub').textContent = `${trailMonths.length} месяцев по ${monthLabel(currentMonth)}`;
+
+  const ctx = document.getElementById('discTrendChart');
+  if (discTrendChartInstance) discTrendChartInstance.destroy();
+  discTrendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: trailMonths.map(m => monthLabel(m)),
+      datasets: [{
+        data: monthData.map(c => c.discountTotal),
+        borderColor: GOLD,
+        backgroundColor: GOLD,
+        borderWidth: 3,
+        tension: 0.3,
+        pointRadius: 5,
+        pointBackgroundColor: GOLD,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 1.5,
+        fill: false,
+        datalabels: {
+          display: true,
+          color: '#8a6a12',
+          anchor: 'end',
+          align: 'top',
+          offset: 6,
+          font: { size: 11, weight: '600' },
+          formatter: (v) => fmtCompact(v).replace(' ₽', '')
+        }
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 20 } },
+      onClick: (evt, elements) => {
+        if (!elements.length) return;
+        const m = trailMonths[elements[0].index];
+        currentMonth = m;
+        document.getElementById('monthSelect').value = m;
+        renderAll();
+        renderDiscountsView();
+      },
+      onHover: (evt, elements) => { evt.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => fmtRub(c.parsed.y) } },
+        datalabels: { display: false }
+      },
+      scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+    },
+    plugins: [ChartDataLabels]
+  });
+
+  const STICKY = 'position:sticky; left:0; background:var(--surface-2); z-index:1;';
+  const headerCells = trailMonths.map(m => `<th style="text-align:right; padding:8px 10px; font-weight:600; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap;">${monthLabel(m)}</th>`).join('');
+
+  const totalRow = `
+    <tr>
+      <td style="padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; ${STICKY}">Сумма скидок</td>
+      ${monthData.map((c, i) => `
+        <td style="text-align:right; padding:8px 10px; border-bottom:1px solid var(--border);">
+          <div><b>${fmtRub(c.discountTotal)}</b></div>
+          <div style="font-size:11px; margin-top:2px;">${trendPct(c.discountTotal, i > 0 ? monthData[i-1].discountTotal : null)}</div>
+        </td>`).join('')}
+    </tr>`;
+
+  const pctRow = `
+    <tr>
+      <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap; ${STICKY}">Доля от услуг+скидка</td>
+      ${monthData.map(c => `<td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border);">${c.discountPctOfServices}%</td>`).join('')}
+    </tr>`;
+
+  const labelNames = [...new Set(monthData.flatMap(c => (c.discountByLabel||[]).map(l => l.name)))];
+  const labelRows = labelNames.map(name => `
+    <tr>
+      <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap; ${STICKY}">${name}</td>
+      ${monthData.map(c => {
+        const amt = (c.discountByLabel||[]).find(l => l.name === name)?.amount;
+        return `<td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border);">${amt ? fmtRub(amt) : '—'}</td>`;
+      }).join('')}
+    </tr>`).join('');
+
+  document.getElementById('discountsTable').innerHTML = `
+    <thead><tr><th style="text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); ${STICKY}"></th>${headerCells}</tr></thead>
+    <tbody>
+      ${totalRow}
+      ${pctRow}
+      ${labelRows}
+    </tbody>`;
 }
 
 /* ====================== nav switching ====================== */
@@ -888,9 +992,11 @@ const viewTitles = {
   discounts: ['Скидки', 'Разбивка скидок по категориям записей'],
 };
 
+let currentView = 'overview';
 document.querySelectorAll('.navitem[data-view]').forEach(item => {
   item.addEventListener('click', () => {
     const view = item.dataset.view;
+    currentView = view;
     document.querySelectorAll('.navitem[data-view]').forEach(n => n.classList.remove('active'));
     item.classList.add('active');
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -899,7 +1005,7 @@ document.querySelectorAll('.navitem[data-view]').forEach(item => {
     document.getElementById('pageSub').textContent = view === 'overview'
       ? 'Данные напрямую из API YClients (records + transactions)'
       : viewTitles[view][1] + (view!=='clientdays' && view!=='discounts' ? monthLabel(currentMonth) : '');
-    document.getElementById('periodToggle').style.display = view === 'overview' ? 'flex' : 'none';
+    document.getElementById('periodToggle').style.display = (view === 'overview' || view === 'discounts') ? 'flex' : 'none';
     if (viewRenderers[view]) viewRenderers[view]();
   });
 });
