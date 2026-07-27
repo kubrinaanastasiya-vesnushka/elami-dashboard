@@ -953,7 +953,7 @@ function renderCategoriesView() {
 
   const goodsRows = top10.map((g, i) => `
     <tr>
-      <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap; ${STICKY}">${i + 1}. ${g.name}</td>
+      <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:normal; max-width:260px; line-height:1.35; ${STICKY}">${i + 1}. ${g.name}</td>
       ${monthData.map(c => {
         const found = (c.goods || []).find(x => x.name === g.name);
         return found ? cell(found.revenue, found.qty, 'шт.') : emptyCell;
