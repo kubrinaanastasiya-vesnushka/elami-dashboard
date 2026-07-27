@@ -283,8 +283,19 @@
     <!-- ===================== CLIENTS ===================== -->
     <div class="view" id="view-clients">
       <div class="card">
-        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Клиенты — детально</div>
-        <div id="clientsDetailFull" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+          <div style="font-size:13px; font-weight:600;">Клиенты — сравнение по месяцам</div>
+          <div id="clientsTableSub" style="font-size:12px; color:var(--text-muted);"></div>
+        </div>
+        <div style="overflow-x:auto;"><table id="clientsTable" style="width:100%; border-collapse:collapse; font-size:13px;"></table></div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Источники записи</div>
+        <div style="overflow-x:auto;"><table id="clientSourcesTable" style="width:100%; border-collapse:collapse; font-size:13px;"></table></div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Откуда узнали о нас</div>
+        <div style="overflow-x:auto;"><table id="referralTable" style="width:100%; border-collapse:collapse; font-size:13px;"></table></div>
       </div>
     </div>
 
@@ -456,6 +467,10 @@ function populateMonthSelect() {
     if (currentView === 'tops') {
       renderTopsView();
       document.getElementById('pageSub').textContent = viewTitles.tops[1];
+    }
+    if (currentView === 'clients') {
+      renderClientsView();
+      document.getElementById('pageSub').textContent = viewTitles.clients[1];
     }
   });
 }
@@ -934,6 +949,38 @@ function cmpCell(rev, cnt, unit) {
     </td>`;
 }
 const CMP_EMPTY_CELL = `<td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); color:var(--text-muted);">—</td>`;
+function cmpCellCountPct(cnt, pct) {
+  return `
+    <td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap;">
+      <div><b>${fmtNum(cnt)}</b></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${pct}%</div>
+    </td>`;
+}
+
+// generic "named rows, union across the trailing window, ordered by selected month" table —
+// used for Источники записи / Откуда узнали (both are {name, count, sharePct} lists)
+function renderNamedComparisonTable(tableId, getList, cellFn, emptyText) {
+  const { trailMonths, monthData } = sixMonthWindow(currentMonth);
+  const curList = getList(MONTHLY_DATA[currentMonth]) || [];
+  const names = curList.map(x => x.name);
+  monthData.forEach(c => (getList(c) || []).forEach(x => { if (!names.includes(x.name)) names.push(x.name); }));
+
+  if (!names.length) {
+    document.getElementById(tableId).innerHTML = `<tbody><tr><td class="empty-note">${emptyText}</td></tr></tbody>`;
+    return;
+  }
+
+  const rows = names.map(name => `
+    <tr>
+      <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:normal; max-width:260px; line-height:1.35; ${CMP_STICKY}">${name}</td>
+      ${monthData.map(c => {
+        const found = (getList(c) || []).find(x => x.name === name);
+        return found ? cellFn(found) : CMP_EMPTY_CELL;
+      }).join('')}
+    </tr>`).join('');
+
+  document.getElementById(tableId).innerHTML = `${cmpHeaderRow(trailMonths)}<tbody>${rows}</tbody>`;
+}
 
 // generic "top-10 ranked by selected month, shown across the trailing window" table —
 // used for Товары / Абонементы / each Топы business-area breakdown
@@ -1015,17 +1062,23 @@ function renderTopsView() {
   renderRankedTable('topGoodsTable', 'topGoodsSub', c => c.goods, 'шт.', 'Нет данных по товарам за этот месяц.');
 }
 function renderClientsView() {
-  const c = MONTHLY_DATA[currentMonth];
-  const total = c.newClients + c.repeatClients;
-  const repeatPct = total ? Math.round(c.repeatClients/total*1000)/10 : 0;
-  const newPct = total ? Math.round(c.newClients/total*1000)/10 : 0;
-  const el = document.getElementById('clientsDetailFull');
-  const sources = c.sources || [];
-  el.innerHTML = `
-    <div class="detail-row"><span>Повторные клиенты</span><span><b>${c.repeatClients}</b> · ${repeatPct}%</span></div>
-    <div class="detail-row"><span>Новые клиенты</span><span><b>${c.newClients}</b> · ${newPct}%</span></div>
-    <div style="font-size:13px; font-weight:600; margin:14px 0 6px;">Источники записи</div>
-  ` + sources.map(s => `<div class="detail-row"><span>${s.name}</span><span><b>${s.sharePct}%</b> · ${s.count} зап.</span></div>`).join('');
+  const { trailMonths, monthData } = sixMonthWindow(currentMonth);
+  document.getElementById('clientsTableSub').textContent = `${trailMonths.length} месяцев по ${monthLabel(currentMonth)}`;
+
+  const pct = (n, total) => total ? Math.round(n/total*1000)/10 : 0;
+  const rows = [
+    ['Новые клиенты', c => c.newClients, c => pct(c.newClients, c.newClients + c.repeatClients)],
+    ['Повторные клиенты', c => c.repeatClients, c => pct(c.repeatClients, c.newClients + c.repeatClients)],
+  ].map(([label, getVal, getPct]) => `
+    <tr>
+      <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap; ${CMP_STICKY}">${label}</td>
+      ${monthData.map(c => cmpCellCountPct(getVal(c), getPct(c))).join('')}
+    </tr>`).join('');
+
+  document.getElementById('clientsTable').innerHTML = `${cmpHeaderRow(trailMonths)}<tbody>${rows}</tbody>`;
+
+  renderNamedComparisonTable('clientSourcesTable', c => c.sources, item => cmpCellCountPct(item.count, item.sharePct), 'Нет данных за этот период.');
+  renderNamedComparisonTable('referralTable', c => c.referralSources, item => cmpCellCountPct(item.count, item.sharePct), 'Нет данных за этот период.');
 }
 let discTrendChartInstance = null;
 function renderDiscountsView() {
@@ -1138,7 +1191,7 @@ const viewTitles = {
   clientdays: ['Клиентские дни', 'Динамика продаж в клиентские дни'],
   categories: ['Категории услуг', 'Категории, товары, абонементы, депозиты — сравнение по месяцам'],
   tops: ['Топы', 'Топ-10 по каждому направлению — сравнение по месяцам'],
-  clients: ['Клиенты', 'Новые, повторные, источники записи · '],
+  clients: ['Клиенты', 'Новые, повторные, источники записи, откуда узнали — сравнение по месяцам'],
   discounts: ['Скидки', 'Разбивка скидок по категориям записей'],
 };
 
@@ -1154,8 +1207,8 @@ document.querySelectorAll('.navitem[data-view]').forEach(item => {
     document.getElementById('pageTitle').textContent = viewTitles[view][0];
     document.getElementById('pageSub').textContent = view === 'overview'
       ? 'Данные напрямую из API YClients (records + transactions)'
-      : viewTitles[view][1] + (view!=='clientdays' && view!=='discounts' && view!=='categories' && view!=='tops' ? monthLabel(currentMonth) : '');
-    document.getElementById('periodToggle').style.display = (view === 'overview' || view === 'discounts' || view === 'categories' || view === 'tops') ? 'flex' : 'none';
+      : viewTitles[view][1] + (view!=='clientdays' && view!=='discounts' && view!=='categories' && view!=='tops' && view!=='clients' ? monthLabel(currentMonth) : '');
+    document.getElementById('periodToggle').style.display = (view === 'overview' || view === 'discounts' || view === 'categories' || view === 'tops' || view === 'clients') ? 'flex' : 'none';
     if (viewRenderers[view]) viewRenderers[view]();
   });
 });
