@@ -958,26 +958,36 @@ function cmpCellCountPct(cnt, pct) {
 }
 
 // generic "named rows, union across the trailing window, ordered by selected month" table —
-// used for Источники записи / Откуда узнали (both are {name, count, sharePct} lists)
-function renderNamedComparisonTable(tableId, getList, cellFn, emptyText) {
+// used for Место записи / Откуда узнали (both are {name, count, sharePct} lists).
+// pinLastName (e.g. "Без категории") is always sorted to the bottom and shown muted,
+// same treatment as the Overview page's "Откуда узнали о нас" card.
+function renderNamedComparisonTable(tableId, getList, cellFn, emptyText, pinLastName) {
   const { trailMonths, monthData } = sixMonthWindow(currentMonth);
   const curList = getList(MONTHLY_DATA[currentMonth]) || [];
   const names = curList.map(x => x.name);
   monthData.forEach(c => (getList(c) || []).forEach(x => { if (!names.includes(x.name)) names.push(x.name); }));
+
+  if (pinLastName && names.includes(pinLastName)) {
+    names.splice(names.indexOf(pinLastName), 1);
+    names.push(pinLastName);
+  }
 
   if (!names.length) {
     document.getElementById(tableId).innerHTML = `<tbody><tr><td class="empty-note">${emptyText}</td></tr></tbody>`;
     return;
   }
 
-  const rows = names.map(name => `
+  const rows = names.map(name => {
+    const muted = name === pinLastName;
+    return `
     <tr>
-      <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:normal; max-width:260px; line-height:1.35; ${CMP_STICKY}">${name}</td>
+      <td style="padding:7px 10px; color:${muted ? 'var(--text-muted)' : 'var(--text-secondary)'}; border-bottom:1px solid var(--border); white-space:normal; max-width:260px; line-height:1.35; ${CMP_STICKY}">${name}</td>
       ${monthData.map(c => {
         const found = (getList(c) || []).find(x => x.name === name);
         return found ? cellFn(found) : CMP_EMPTY_CELL;
       }).join('')}
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   document.getElementById(tableId).innerHTML = `${cmpHeaderRow(trailMonths)}<tbody>${rows}</tbody>`;
 }
@@ -1078,7 +1088,7 @@ function renderClientsView() {
   document.getElementById('clientsTable').innerHTML = `${cmpHeaderRow(trailMonths)}<tbody>${rows}</tbody>`;
 
   renderNamedComparisonTable('clientSourcesTable', c => c.sources, item => cmpCellCountPct(item.count, item.sharePct), 'Нет данных за этот период.');
-  renderNamedComparisonTable('referralTable', c => c.referralSources, item => cmpCellCountPct(item.count, item.sharePct), 'Нет данных за этот период.');
+  renderNamedComparisonTable('referralTable', c => c.referralSources, item => cmpCellCountPct(item.count, item.sharePct), 'Нет данных за этот период.', 'Без категории');
 }
 let discTrendChartInstance = null;
 function renderDiscountsView() {
