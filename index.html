@@ -298,6 +298,7 @@
           <div style="font-size:13px; font-weight:600;">Клиенты — сравнение по месяцам</div>
           <div id="clientsTableSub" style="font-size:12px; color:var(--text-muted);"></div>
         </div>
+        <div id="clientsPartialNote" style="display:none; font-size:12px; color:var(--text-muted); background:var(--surface-1); border-radius:8px; padding:8px 10px; margin-bottom:10px;"></div>
         <div style="overflow-x:auto;"><table id="clientsTable" style="width:100%; border-collapse:collapse; font-size:13px;"></table></div>
       </div>
       <div class="card">
@@ -434,6 +435,8 @@ const MONTH_SHORT = {'01':'Янв','02':'Фев','03':'Мар','04':'Апр','05
                       '07':'Июл','08':'Авг','09':'Сен','10':'Окт','11':'Ноя','12':'Дек'};
 const monthsSorted = Object.keys(MONTHLY_DATA).sort();
 function monthLabel(ym) { const [y,m] = ym.split('-'); return `${MONTH_NAMES[m]} ${y}`; }
+function isPartialMonth(ym) { const c = MONTHLY_DATA[ym]; return !!(c && c.lostClients && c.lostClients.isPartialMonth); }
+const PARTIAL_MONTH_NOTE = 'Месяц ещё не закрыт: визиты и клиенты считаются по всем подтверждённым записям месяца, включая уже забронированные, но ещё не наступившие — это «сколько запланировано», а не «сколько было по факту на сегодня».';
 function prevMonthKey(ym) { const i = monthsSorted.indexOf(ym); return i>0 ? monthsSorted[i-1] : null; }
 function delta(cur, prev) { return (prev===undefined || prev===null || prev===0) ? null : Math.round((cur/prev-1)*100); }
 
@@ -851,6 +854,9 @@ function renderInsight(ym) {
   if (cur.discountTotal) {
     parts.push(`На скидки ушло ${fmtCompact(cur.discountTotal)} (${cur.discountPctOfServices}% от услуг со скидкой).`);
   }
+  if (isPartialMonth(ym)) {
+    parts.push(`<br><span style="color:var(--text-muted);">⚠ ${PARTIAL_MONTH_NOTE}</span>`);
+  }
   document.getElementById('insightText').innerHTML = parts.join(' ');
 }
 
@@ -1182,6 +1188,13 @@ function lostClientsCell(lc) {
 function renderClientsView() {
   const { trailMonths, monthData } = sixMonthWindow(currentMonth);
   document.getElementById('clientsTableSub').textContent = `${trailMonths.length} месяцев по ${monthLabel(currentMonth)}`;
+  const partialNote = document.getElementById('clientsPartialNote');
+  if (isPartialMonth(currentMonth)) {
+    partialNote.style.display = 'block';
+    partialNote.textContent = `⚠ ${monthLabel(currentMonth)}: ${PARTIAL_MONTH_NOTE}`;
+  } else {
+    partialNote.style.display = 'none';
+  }
 
   const pct = (n, total) => total ? Math.round(n/total*1000)/10 : 0;
   const rows = [
