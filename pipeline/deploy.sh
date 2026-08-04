@@ -6,11 +6,12 @@ cd "$(dirname "$0")"
 
 echo "[1/6] fetch_pipeline.py — тянем свежие данные из YClients API"
 python3 fetch_pipeline.py
+python3 fetch_goods_stock.py
 
 echo "[2/6] aggregate_pipeline.py — пересчитываем метрики"
 python3 aggregate_pipeline.py
 
-echo "[3/6] embed.py — вшиваем MONTHLY_DATA в index.html"
+echo "[3/6] embed.py — вшиваем MONTHLY_DATA + GOODS_STOCK в index.html"
 python3 embed.py
 
 echo "[4/6] node --check — синтаксическая проверка встроенного JS"

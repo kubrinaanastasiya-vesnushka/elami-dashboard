@@ -408,7 +408,8 @@ for ym, d in MONTHLY_RAW.items():
         dt = datetime.strptime(r["date"], "%Y-%m-%d %H:%M:%S")
         if dt > NOW:
             continue
-        all_recs.append({"cid": client["id"], "date": dt, "staff": (r.get("staff") or {}).get("name", "—"), "is_new": bool(client.get("is_new"))})
+        rec_services = [{"title": s["title"], "cost_to_pay": s.get("cost_to_pay", 0) or 0} for s in r.get("services", [])]
+        all_recs.append({"cid": client["id"], "date": dt, "staff": (r.get("staff") or {}).get("name", "—"), "is_new": bool(client.get("is_new")), "services": rec_services})
 
 by_client = defaultdict(list)
 for rec in all_recs:
@@ -482,6 +483,43 @@ for ym in MONTHLY_DATA:
     MONTHLY_DATA[ym]["masterLoyalty"] = [
         {"name": n, **v} for n, v in sorted(master_loyalty[ym].items(), key=lambda x: -x[1]["cohortSize"])
     ]
+
+# ====================== new clients: first-month services + first master (2026-08-04, Nastya's request) ======================
+# For each cohort of new clients (first-ever visit, is_new-verified, landing in month ym):
+# what services did they take within that same calendar month (their whole "first month",
+# not just the single first visit — a client can come back a second time in the same month),
+# and which master saw them on that very first visit.
+new_client_detail = {}
+for ym in MONTHLY_RAW:
+    cids = cohorts.get(ym, [])
+    total = len(cids)
+    service_stats = defaultdict(lambda: {"revenue": 0.0, "count": 0})
+    master_counter = Counter()
+    for cid in cids:
+        master_counter[first_visit[cid]["staff"]] += 1
+        for rec in by_client[cid]:
+            if rec["date"].strftime("%Y-%m") != ym:
+                continue
+            for s in rec["services"]:
+                stat = service_stats[s["title"]]
+                stat["revenue"] += s["cost_to_pay"]
+                stat["count"] += 1
+    services_first_month = sorted(
+        [{"name": k, "revenue": round(v["revenue"]), "count": v["count"]} for k, v in service_stats.items()],
+        key=lambda x: -x["revenue"],
+    )
+    first_master_dist = [
+        {"name": n, "count": c, "sharePct": round(c / total * 100, 1) if total else 0}
+        for n, c in master_counter.most_common()
+    ]
+    new_client_detail[ym] = {
+        "totalNew": total,
+        "servicesFirstMonth": services_first_month,
+        "firstMasterDist": first_master_dist,
+    }
+
+for ym in MONTHLY_DATA:
+    MONTHLY_DATA[ym]["newClientDetail"] = new_client_detail[ym]
 
 # ====================== lost clients (2026-07-27, Nastya's request) ======================
 # "Потерянные клиенты" as of a given period's end date: among everyone who has EVER been a
