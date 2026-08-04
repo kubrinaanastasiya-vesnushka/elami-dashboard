@@ -506,7 +506,7 @@ for ym in MONTHLY_RAW:
                 stat["count"] += 1
     services_first_month = sorted(
         [{"name": k, "revenue": round(v["revenue"]), "count": v["count"]} for k, v in service_stats.items()],
-        key=lambda x: -x["revenue"],
+        key=lambda x: -x["count"],
     )
     first_master_dist = [
         {"name": n, "count": c, "sharePct": round(c / total * 100, 1) if total else 0}
