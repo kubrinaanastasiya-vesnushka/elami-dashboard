@@ -286,7 +286,7 @@
       </div>
       <div class="card">
         <div style="font-size:13px; font-weight:600; margin-bottom:2px;">Критические остатки</div>
-        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Товары с остатком 3 шт. и меньше на складе продаж · снимок на текущий момент, не по месяцам</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Товары с остатком меньше 5 шт. на складе продаж · снимок на текущий момент, не по месяцам</div>
         <div style="overflow-x:auto;"><table id="criticalStockTable" style="width:100%; border-collapse:collapse; font-size:13px;"></table></div>
       </div>
     </div>
@@ -1151,7 +1151,7 @@ function renderGoodsView() {
     document.getElementById('criticalStockTable').innerHTML = `<tbody><tr><td class="empty-note">Нет данных по остаткам.</td></tr></tbody>`;
     return;
   }
-  const critical = GOODS_STOCK.filter(g => g.amount <= 3).sort((a, b) => a.amount - b.amount);
+  const critical = GOODS_STOCK.filter(g => g.amount < 5).sort((a, b) => a.amount - b.amount);
   if (!critical.length) {
     document.getElementById('criticalStockTable').innerHTML = `<tbody><tr><td class="empty-note">Критических остатков нет — все товары выше порога в 3 шт.</td></tr></tbody>`;
     return;
