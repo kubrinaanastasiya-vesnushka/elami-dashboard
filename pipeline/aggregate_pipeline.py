@@ -161,6 +161,21 @@ def month_metrics(ym):
 
     revenue = sum(t["amount"] for t in transactions if (t.get("expense") or {}).get("title") in REVENUE_EXPENSE_TYPES)
 
+    # Nastya (2026-08-07): revenue split Эльвира vs остальные мастера for the Overview trend
+    # chart, must sum exactly to `revenue` above — so unlike `specialists` (services only),
+    # this attributes every revenue transaction via its record's staff (any record, not just
+    # the attendance-filtered subset, since `revenue` itself isn't attendance-filtered either).
+    # Transactions with no record_id (pure retail/deposit/certificate sales rung up without a
+    # booked visit — record_id 0) can't be attributed to a specific master and fall into
+    # "остальные" by default, which is what keeps the two lines summing to the total.
+    rec_staff_all = {r["id"]: (r.get("staff") or {}).get("name") for r in raw["records"]}
+    elvira_revenue = sum(
+        t["amount"] for t in transactions
+        if (t.get("expense") or {}).get("title") in REVENUE_EXPENSE_TYPES
+        and rec_staff_all.get(t.get("record_id")) == "Эльвира Аминева"
+    )
+    revenue_by_master = {"elvira": round(elvira_revenue), "others": round(revenue - elvira_revenue)}
+
     visit_ids = set()
     services_revenue = 0.0
     cat_revenue = defaultdict(float)
@@ -385,6 +400,7 @@ def month_metrics(ym):
         "discountTotal": round(discount_total),
         "discountPctOfServices": round(discount_total/(services_revenue+discount_total)*100, 1) if (services_revenue+discount_total) else 0,
         "discountByLabel": [{"name": k, "amount": round(v)} for k, v in sorted(discount_by_label.items(), key=lambda x: -x[1])],
+        "revenueByMaster": revenue_by_master,
     }
 
 MONTHLY_DATA = {ym: month_metrics(ym) for ym in MONTHLY_RAW}
