@@ -584,6 +584,8 @@ function renderRevenueChart(ym) {
   const trailMonths = monthsSorted.slice(from, idx + 1);
   const values = trailMonths.map(m => MONTHLY_DATA[m].revenue);
   const labels = trailMonths.map(m => MONTH_SHORT[m.split('-')[1]]);
+  const elviraValues = trailMonths.map(m => (MONTHLY_DATA[m].specialists || []).find(s => s.name === 'Эльвира Аминева')?.revenue || 0);
+  const othersValues = trailMonths.map(m => (MONTHLY_DATA[m].specialists || []).reduce((sum, s) => s.name === 'Эльвира Аминева' ? sum : sum + s.revenue, 0));
 
   document.getElementById('revChartSub').textContent = `${trailMonths.length} месяцев по ${monthLabel(ym)}`;
 
@@ -594,6 +596,7 @@ function renderRevenueChart(ym) {
     data: {
       labels,
       datasets: [{
+        label: 'Общая выручка',
         data: values,
         borderColor: GOLD,
         backgroundColor: GOLD,
@@ -614,6 +617,30 @@ function renderRevenueChart(ym) {
           font: { size: 11, weight: '600' },
           formatter: (v) => fmtCompact(v).replace(' ₽','')
         }
+      }, {
+        label: 'Эльвира',
+        data: elviraValues,
+        borderColor: '#7fa87f',
+        backgroundColor: '#7fa87f',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        tension: 0.3,
+        pointRadius: 2,
+        pointBackgroundColor: '#7fa87f',
+        fill: false,
+        datalabels: { display: false }
+      }, {
+        label: 'Остальные мастера',
+        data: othersValues,
+        borderColor: '#9aa5b1',
+        backgroundColor: '#9aa5b1',
+        borderWidth: 1.5,
+        borderDash: [2, 3],
+        tension: 0.3,
+        pointRadius: 2,
+        pointBackgroundColor: '#9aa5b1',
+        fill: false,
+        datalabels: { display: false }
       }]
     },
     options: {
@@ -625,13 +652,15 @@ function renderRevenueChart(ym) {
         const m = trailMonths[i];
         openDetail(`Выручка — ${monthLabel(m)}`, 'клик по точке открывает месяц', `
           <div class="detail-row"><span>Выручка</span><span><b>${fmtRub(values[i])}</b></span></div>
+          <div class="detail-row"><span>из неё Эльвира (услуги)</span><span><b>${fmtRub(elviraValues[i])}</b></span></div>
+          <div class="detail-row"><span>Остальные мастера (услуги)</span><span><b>${fmtRub(othersValues[i])}</b></span></div>
         `);
       },
       onHover: (evt, elements) => { evt.native.target.style.cursor = elements.length ? 'pointer' : 'default'; },
       plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: (c) => fmtRub(c.parsed.y) } },
-        datalabels: { display: false } // выключено глобально, включено только для этого датасета выше
+        legend: { display: true, position: 'bottom', labels: { boxWidth: 14, font: { size: 11 } } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmtRub(c.parsed.y)}` } },
+        datalabels: { display: false } // выключено глобально, включено только для датасета «Общая выручка» выше
       },
       scales: { y: { display: false }, x: { grid: { display: false }, ticks: { font: { size: 11 } } } }
     },
