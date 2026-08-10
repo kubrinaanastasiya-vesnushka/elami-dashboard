@@ -138,6 +138,23 @@ for _cid in set(list(_credits_by_client.keys()) + list(_debits_by_client.keys())
                 INSTRUMENT_COVERED[_key] = _covered
                 _balance -= _covered
 
+# Manual overrides (Nastya, 2026-08-10): confirmed by her personally checking these July
+# visits against certificate/deposit records in YClients — a mix of cash + instrument
+# payment, so `cost_to_pay > 0` on these lines, which the automatic ledger above
+# deliberately excludes from matching (see the Журавлева comment above — partial-payment
+# gaps are normally a genuine discount, not ledger-eligible, to avoid wrongly netting a
+# real discounted price against an unrelated balance). These four are a confirmed
+# exception to that default: verified against the certificates CSV (exact nominal/redemption
+# match) or against a same-day deposit top-up, not a guess.
+INSTRUMENT_COVERED_MANUAL = {
+    (1846601913, 0): 20527,  # Денисенко Наталья, Ботулинотерапия 28.07 — сертификаты (см. certificates CSV, 45 000₽ на этот телефон куплено 16.07.2026)
+    (1846601913, 1): 10473,  # Денисенко Наталья, Биоревитализация 28.07 — сертификаты
+    (1866933444, 0): 18000,  # Солодовникова Светлана, Тредлифтинг 27.07 — депозит 15 000₽ (26.07, с рассылки) + сертификат 3 000₽ (сумма списания 27.07, точное совпадение)
+    (1810795734, 0): 5000,   # Куцарь Дарья, ЛЭ ВИП 04.07 — сертификат 5 000₽ (продан 21.06, погашен 04.07, точное совпадение)
+    (1845023856, 0): 2000,   # Сатыбалдыева Лилия, Ботулинотерапия 15.07 — сертификат (сумма списания 2 000₽ 15.07, точное совпадение)
+}
+INSTRUMENT_COVERED.update(INSTRUMENT_COVERED_MANUAL)
+
 def classify_source(rec):
     if rec.get("from_url"):
         if "2gis" in rec["from_url"]:
