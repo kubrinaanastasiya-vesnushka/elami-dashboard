@@ -64,7 +64,7 @@ for _ym, _raw in MONTHLY_RAW.items():
 # (date + amount — a single certificate can be split across many redemptions). Matched into
 # the ledger via phone number (reliable, present on both sides) rather than name (found
 # comment/name text to be unreliable elsewhere in this project already).
-CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20250101_20260729.csv"
+CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20250101_20260810.csv"
 import csv as _csv
 _cert_credits_by_phone = defaultdict(list)  # phone -> [(sale_date, nominal), ...]
 with open(CERTIFICATES_CSV, encoding="utf-8") as _f:
@@ -152,6 +152,16 @@ INSTRUMENT_COVERED_MANUAL = {
     (1866933444, 0): 18000,  # Солодовникова Светлана, Тредлифтинг 27.07 — депозит 15 000₽ (26.07, с рассылки) + сертификат 3 000₽ (сумма списания 27.07, точное совпадение)
     (1810795734, 0): 5000,   # Куцарь Дарья, ЛЭ ВИП 04.07 — сертификат 5 000₽ (продан 21.06, погашен 04.07, точное совпадение)
     (1845023856, 0): 2000,   # Сатыбалдыева Лилия, Ботулинотерапия 15.07 — сертификат (сумма списания 2 000₽ 15.07, точное совпадение)
+    # 2026-08-11: Nastya sent a screenshot of the YClients "loyalty transactions" log
+    # (списания с сертификата/личного счёта/абонемента) for August — matched by phone +
+    # exact amount, much stronger evidence than the ruble-FIFO simulation above.
+    (1850420241, 0): 3500,     # Останина Наталья, Комбо-лифтинг 07.08 — списание с личного счёта 3500₽ (лог, 07.08)
+    (1856621310, 0): 5869.64,  # Пивовар Ксения, Контурная пластика губ 03.08 — списание с личного счёта (лог, 03.08, точное совпадение до копейки)
+    (1856621310, 1): 11430.36, # Пивовар Ксения, МОНАКО 03.08 — списание с личного счёта (лог, 03.08, точное совпадение до копейки)
+    (1873014504, 0): 10000,    # Брежнева Дина, Контурная пластика губ 01.08 — списание с сертификата 10000₽ (лог, 01.08)
+    (1816480947, 1): 3500,     # Аминева Эльвира, Тринити 01.08 — абонемент «Тринити 12 процедур» (карта 84 в логе, использование+перерасчёт 3150+350)
+    (1816481442, 1): 3500,     # Аминева Эльвира, Тринити 03.08 — абонемент «Тринити 12 процедур» (карта 84 в логе, 03.08 20:43)
+    (1874730804, 0): 4600,     # Шестакова Мария, ЛЭ Премиум 08.08 — абонемент «Пакет Премиум 5 процедур» (лог, использование+перерасчёт 3485+1115=4600, полностью)
 }
 INSTRUMENT_COVERED.update(INSTRUMENT_COVERED_MANUAL)
 
