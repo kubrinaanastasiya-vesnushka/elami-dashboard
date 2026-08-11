@@ -1211,7 +1211,8 @@ function renderInventoryHistory() {
           <div class="empty-note">Расхождений не найдено — расчётный остаток совпал с фактическим по всем позициям.</div>
         </div>`;
     }
-    const rows = inv.items.map(it => `
+    const sortedItems = [...inv.items].sort((a, b) => b.diff - a.diff);
+    const rows = sortedItems.map(it => `
       <tr>
         <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:normal; max-width:320px; line-height:1.35;">${it.name}</td>
         <td style="padding:7px 10px; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap;">${it.category || '—'}</td>
