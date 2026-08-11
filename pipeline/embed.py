@@ -3,6 +3,7 @@ import json, re, sys
 REPO = "/root/agent-workspace/projects/elami-dashboard"
 DATA_PATH = f"{REPO}/pipeline/monthly_data_v2.json"
 GOODS_STOCK_PATH = f"{REPO}/pipeline/goods_stock.json"
+INVENTORY_HISTORY_PATH = f"{REPO}/pipeline/inventory_history.json"
 HTML_PATH = f"{REPO}/index.html"
 
 data = json.load(open(DATA_PATH, encoding="utf-8"))
@@ -28,5 +29,15 @@ if goods_pattern.search(html):
 else:
     html = html.replace(new_line + "\n", new_line + "\n" + goods_line + "\n", 1)
 
+inventory_history = json.load(open(INVENTORY_HISTORY_PATH, encoding="utf-8"))
+inv_compact = json.dumps(inventory_history, ensure_ascii=False, separators=(",", ":"))
+inv_line = f"const INVENTORY_HISTORY = {inv_compact};"
+
+inv_pattern = re.compile(r"const INVENTORY_HISTORY = \[.*?\];\n", re.DOTALL)
+if inv_pattern.search(html):
+    html = inv_pattern.sub(inv_line + "\n", html, count=1)
+else:
+    html = html.replace(goods_line + "\n", goods_line + "\n" + inv_line + "\n", 1)
+
 open(HTML_PATH, "w", encoding="utf-8").write(html)
-print("embedded MONTHLY_DATA + GOODS_STOCK into", HTML_PATH)
+print("embedded MONTHLY_DATA + GOODS_STOCK + INVENTORY_HISTORY into", HTML_PATH)

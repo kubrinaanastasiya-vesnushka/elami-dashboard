@@ -1,0 +1,112 @@
+[
+  {
+    "date": "2026-07-25",
+    "items": [
+      {
+        "category": "Профессиональная косметика",
+        "name": "SE04 Azelaine soft cream, крем с азелаиновой кислотой для чувствительной кожи, 50 мл",
+        "calc": 13.0,
+        "fact": 12.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "MS06 Moisturizing cream, Увлажняющий крем для лица 50мл",
+        "calc": 10.0,
+        "fact": 11.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "Cleansing mask, очищающая маска для проблемной кожи, 75мл",
+        "calc": 7.0,
+        "fact": 5.0,
+        "diff": 2.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "CL23 Silk amino acids cleansing gel, гель для умывания с аминокислотами шелка, 200мл",
+        "calc": 6.0,
+        "fact": 5.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "AO04 Vitamin C serum, сыворотка с витамином С 10%, 30 мл",
+        "calc": 5.0,
+        "fact": 3.0,
+        "diff": 2.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "Anti couperose serum, антикуперозная сыворотка, 30 мл",
+        "calc": 1.0,
+        "fact": 3.0,
+        "diff": -2.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "AC03 Anti couperose cream, Антикуперозный крем для лица 50мл",
+        "calc": 10.0,
+        "fact": 9.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "HPR eye cream, крем для кожи вокруг глаз с HPR, 30мл",
+        "calc": 4.0,
+        "fact": 3.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "Anti aging mask, омолаживающая маска, 75мл.",
+        "calc": 8.0,
+        "fact": 5.0,
+        "diff": 3.0
+      },
+      {
+        "category": "Профессиональная косметика",
+        "name": "Anti acne cream gel, крем-гель для проблемной кожи, 50мл",
+        "calc": 3.0,
+        "fact": 4.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Домашний уход",
+        "name": "Sensyses CLASSIC | Cleanser Очищающий тоник для лица 200мл",
+        "calc": 3.0,
+        "fact": 2.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Домашний уход",
+        "name": "Bronzecran | Protective Stick SPF50 Солнцезащитный карандаш для лица 10мл.",
+        "calc": 2.0,
+        "fact": 3.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Домашний уход",
+        "name": "Retiage 3 Retinol system | Anti-aging Cream-Gel Крем для возрастной кожи 50мл.",
+        "calc": 12.0,
+        "fact": 13.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Домашний уход",
+        "name": "C-Vit | Liposomal Serum Сыворотка для лица 30мл.",
+        "calc": 2.0,
+        "fact": 1.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Домашний уход",
+        "name": "Hidraloe | Eye Cream 15ml Крем для кожи вокруг глаз 15мл.",
+        "calc": 2.0,
+        "fact": 1.0,
+        "diff": 1.0
+      }
+    ]
+  }
+]
