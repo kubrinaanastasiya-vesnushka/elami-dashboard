@@ -149,3 +149,81 @@ embedded MONTHLY_DATA + GOODS_STOCK + INVENTORY_HISTORY into /root/agent-workspa
 [4/6] node --check — синтаксическая проверка встроенного JS
 [5/6] деплой на веб-сервер
 [6/6] git commit + push
+Готово. Дашборд обновлён: http://45.14.245.79:8080/
+🎩 Эламик: дашборд обновлён. Текущий месяц (2026-08):
+Выручка: 1 069 000 ₽ (+486 690 ₽)
+Визиты: 171 (+18)
+Скидки: 71 017 ₽ (+39 947 ₽)
+[1/6] fetch_pipeline.py — тянем свежие данные из YClients API
+categories: 10 services: 123
+2025-01 records: 168 transactions: 120
+2025-02 records: 222 transactions: 182
+2025-03 records: 317 transactions: 234
+2025-04 records: 229 transactions: 199
+2025-05 records: 368 transactions: 323
+2025-06 records: 216 transactions: 174
+2025-07 records: 336 transactions: 344
+2025-08 records: 162 transactions: 154
+2025-09 records: 263 transactions: 223
+2025-10 records: 282 transactions: 319
+2025-11 records: 315 transactions: 283
+2025-12 records: 306 transactions: 254
+2026-01 records: 304 transactions: 258
+2026-02 records: 334 transactions: 247
+2026-03 records: 429 transactions: 363
+2026-04 records: 388 transactions: 298
+2026-05 records: 452 transactions: 411
+2026-06 records: 465 transactions: 445
+2026-07 records: 353 transactions: 359
+2026-08 records: 241 transactions: 225
+done, saved monthly_raw.json
+goods_stock.json written: 7 items, 3 with stock <= 3
+[2/6] aggregate_pipeline.py — пересчитываем метрики
+{
+  "cohortSize": 55,
+  "returned": 35,
+  "returnPct": 63.6,
+  "windowClosed": false
+}
+[
+  {
+    "name": "Эльвира Аминева",
+    "cohortSize": 28,
+    "returnedSame": 13,
+    "loyaltyPct": 46.4,
+    "windowClosed": false
+  },
+  {
+    "name": "Татьяна",
+    "cohortSize": 12,
+    "returnedSame": 9,
+    "loyaltyPct": 75.0,
+    "windowClosed": false
+  },
+  {
+    "name": "Анна",
+    "cohortSize": 6,
+    "returnedSame": 0,
+    "loyaltyPct": 0.0,
+    "windowClosed": false
+  },
+  {
+    "name": "Влада",
+    "cohortSize": 5,
+    "returnedSame": 4,
+    "loyaltyPct": 80.0,
+    "windowClosed": false
+  },
+  {
+    "name": "Александра",
+    "cohortSize": 4,
+    "returnedSame": 1,
+    "loyaltyPct": 25.0,
+    "windowClosed": false
+  }
+]
+[3/6] embed.py — вшиваем MONTHLY_DATA + GOODS_STOCK в index.html
+embedded MONTHLY_DATA + GOODS_STOCK + INVENTORY_HISTORY into /root/agent-workspace/projects/elami-dashboard/index.html
+[4/6] node --check — синтаксическая проверка встроенного JS
+[5/6] деплой на веб-сервер
+[6/6] git commit + push
