@@ -973,8 +973,8 @@ function renderClientDaysView() {
   const headerCells = groups.map(([label]) => `<th style="text-align:right; padding:8px 10px; font-weight:600; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap;">${label}</th>`).join('');
 
   const totalRow = `
-    <tr>
-      <td style="padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; ${STICKY}">Итого</td>
+    <tr style="background: var(--bg-accent);">
+      <td style="padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; ${STICKY} background: var(--bg-accent);">Итого</td>
       ${groups.map(([, g], i) => `
         <td style="text-align:right; padding:8px 10px; border-bottom:1px solid var(--border);">
           <div><b>${fmtRub(g.total)}</b></div>
@@ -1153,8 +1153,8 @@ function renderCategoriesView() {
   monthData.forEach(c => (c.categoriesFull || []).forEach(x => { if (!catNames.includes(x.name)) catNames.push(x.name); }));
 
   const servicesTotalRow = `
-    <tr>
-      <td style="padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; ${CMP_STICKY}">Итого услуги</td>
+    <tr style="background: var(--bg-accent);">
+      <td style="padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; ${CMP_STICKY} background: var(--bg-accent);">Итого услуги</td>
       ${monthData.map(c => {
         const list = c.categoriesFull || [];
         const rev = list.reduce((s, x) => s + x.revenue, 0);
@@ -1426,8 +1426,8 @@ function renderDiscountsView() {
   const headerCells = trailMonths.map(m => `<th style="text-align:right; padding:8px 10px; font-weight:600; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap;">${monthLabel(m)}</th>`).join('');
 
   const totalRow = `
-    <tr>
-      <td style="padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; ${STICKY}">Сумма скидок</td>
+    <tr style="background: var(--bg-accent);">
+      <td style="padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; ${STICKY} background: var(--bg-accent);">Сумма скидок</td>
       ${monthData.map((c, i) => `
         <td style="text-align:right; padding:8px 10px; border-bottom:1px solid var(--border);">
           <div><b>${fmtRub(c.discountTotal)}</b></div>
