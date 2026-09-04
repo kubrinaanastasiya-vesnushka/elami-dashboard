@@ -219,6 +219,16 @@ def month_metrics(ym):
     )
     revenue_by_master = {"elvira": round(elvira_revenue), "others": round(revenue - elvira_revenue)}
 
+    # Per-master total revenue (2026-09-04, Nastya's Мастера table request) — same attribution
+    # logic as elvira_revenue above (every revenue-type transaction via its record's staff),
+    # generalized to all masters rather than just the Эльвира/остальные split. Unattributed
+    # transactions (no record_id, e.g. retail sold without a booking) fall into "—", same
+    # default key used for staffless records elsewhere in this function.
+    revenue_by_master_all = defaultdict(float)
+    for _t in transactions:
+        if (_t.get("expense") or {}).get("title") in REVENUE_EXPENSE_TYPES:
+            revenue_by_master_all[rec_staff_all.get(_t.get("record_id")) or "—"] += _t["amount"]
+
     visit_ids = set()
     services_revenue = 0.0
     cat_revenue = defaultdict(float)
@@ -234,6 +244,7 @@ def month_metrics(ym):
     clients_seen = {}
     referral_tags_by_client = {}
     spec_clients_seen = defaultdict(dict)  # staff_name -> {client_id: is_new_bool}
+    spec_goods_revenue = defaultdict(float)  # staff_name -> "Сумма товаров" (2026-09-04, Nastya's Мастера table request)
     goods_seen = {}  # dedup by goods_transactions line id — a shared visit can repeat a line across staff records
 
     for r in records:
@@ -303,6 +314,7 @@ def month_metrics(ym):
             if gid is None or gid in goods_seen:
                 continue
             goods_seen[gid] = {"name": g.get("title", "—"), "revenue": g.get("cost_to_pay", 0) or 0, "qty": abs(g.get("amount", 0) or 0)}
+            spec_goods_revenue[staff_name] += g.get("cost_to_pay", 0) or 0
 
     # товары/абонементы/депозиты: transaction-based sum+count — same convention as
     # client_days_pipeline.py's TYPE_MAP, so this row ties to the same revenue definition
@@ -390,7 +402,11 @@ def month_metrics(ym):
     specialists = sorted(
         [{"name": n, "revenue": round(v), "avgCheck": round(v/len(spec_visits[n])) if spec_visits[n] else 0, "visits": len(spec_visits[n]),
           "newClients": sum(1 for is_new in spec_clients_seen[n].values() if is_new),
-          "repeatClients": sum(1 for is_new in spec_clients_seen[n].values() if not is_new)}
+          "repeatClients": sum(1 for is_new in spec_clients_seen[n].values() if not is_new),
+          "goodsRevenue": round(spec_goods_revenue.get(n, 0)),
+          "totalRevenue": round(revenue_by_master_all.get(n, 0)),
+          "avgCheckMaster": round(revenue_by_master_all.get(n, 0)/len(spec_visits[n])) if spec_visits[n] else 0,
+          "revenueSharePct": round(revenue_by_master_all.get(n, 0)/revenue*100, 1) if revenue else 0}
          for n, v in spec_revenue.items()],
         key=lambda x: -x["revenue"]
     )
