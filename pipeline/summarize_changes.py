@@ -46,6 +46,8 @@ def main():
 
     lines = [f"🎩 Эламик: дашборд обновлён. Текущий месяц ({latest}):"]
     lines.append(f"Выручка: {fmt_delta(cur_m['revenue'], prev_m['revenue'] if prev_m else None, ' ₽')}")
+    lines.append(f"  из них Эльвира: {fmt_delta(cur_m['revenueByMaster']['elvira'], prev_m['revenueByMaster']['elvira'] if prev_m else None, ' ₽')}")
+    lines.append(f"  из них остальные: {fmt_delta(cur_m['revenueByMaster']['others'], prev_m['revenueByMaster']['others'] if prev_m else None, ' ₽')}")
     lines.append(f"Визиты: {fmt_delta(cur_m['visits'], prev_m['visits'] if prev_m else None)}")
     lines.append(f"Скидки: {fmt_delta(cur_m['discountTotal'], prev_m['discountTotal'] if prev_m else None, ' ₽')}")
 
