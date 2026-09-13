@@ -12,7 +12,8 @@ REVENUE_EXPENSE_TYPES = {"Оказание услуг", "Продажа това
 CAT_COLORS = ['#97C459', '#5DCAA5', '#EDA100', '#888780', '#6B8FCE', '#C77DBB']
 # same TYPE_MAP convention as client_days_pipeline.py — transactions-based sum+count,
 # consistent with how revenue is defined everywhere else in this dashboard (cash basis).
-TYPE_MAP = {"Продажа товаров": "goods", "Продажа абонементов": "subscriptions", "Пополнение счета": "deposits"}
+TYPE_MAP = {"Продажа товаров": "goods", "Продажа абонементов": "subscriptions", "Пополнение счета": "deposits",
+            "Оказание услуг": "services", "Продажа сертификатов": "certificates"}
 # Nastya, 2026-07-27: these are miscategorized in YClients itself as "goods" (Товары) —
 # they're actually multi-session massage packages, should count as Абонементы. Reclassify
 # in both the summary sum+count row and the top-products table (excluded there entirely).
@@ -439,6 +440,11 @@ def month_metrics(ym):
 
     return {
         "revenue": round(revenue),
+        # Cash-basis "Оказание услуг" transaction sum — NOT services_revenue (that's built from
+        # cost_to_pay on service records, which includes future-dated confirmed bookings not yet
+        # paid; for an in-progress month with scheduled appointments it can exceed `revenue`
+        # itself). This field must stay consistent with `revenue`'s own transaction-based method.
+        "servicesRevenue": round(by_type_sum.get("services", 0)),
         "visits": visits,
         "avgCheckTotal": round(avg_check_total),
         "avgCheckServices": round(avg_check_services),

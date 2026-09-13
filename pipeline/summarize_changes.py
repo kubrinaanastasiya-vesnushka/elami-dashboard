@@ -7,6 +7,12 @@ PREV_PATH = f"{PIPE}/monthly_data_v2.prev.json"
 BOT_TOKEN_FILE = "/root/elamik-home/.claude/channels/telegram/.env"
 CHAT_ID = "289566273"  # Настя
 
+# План по выручке, зафиксированный в Финмодель_ЭЛАМИ.xlsx (лист ПРОГНОЗ) — обновлять вручную
+# при каждой новой договорённости о плане на следующий месяц (см. MEMORY.md, сентябрь 2026).
+REVENUE_PLAN = {
+    "2026-09": {"elvira": 1300000, "others": 1000000},
+}
+
 
 def load_token():
     for line in open(BOT_TOKEN_FILE):
@@ -44,12 +50,37 @@ def main():
     cur_m = cur[latest]
     prev_m = prev.get(latest) if prev else None
 
+    # .get(...) throughout — prev_m may be an older snapshot missing fields added later
+    # (e.g. servicesRevenue, 2026-09-13), and should degrade to "no delta" rather than crash.
+    prev_master = (prev_m or {}).get("revenueByMaster", {})
+    prev_goods = (prev_m or {}).get("goodsTotal", {})
+    prev_subs = (prev_m or {}).get("subscriptionsTotal", {})
+
     lines = [f"🎩 Эламик: дашборд обновлён. Текущий месяц ({latest}):"]
-    lines.append(f"Выручка: {fmt_delta(cur_m['revenue'], prev_m['revenue'] if prev_m else None, ' ₽')}")
-    lines.append(f"  из них Эльвира: {fmt_delta(cur_m['revenueByMaster']['elvira'], prev_m['revenueByMaster']['elvira'] if prev_m else None, ' ₽')}")
-    lines.append(f"  из них остальные: {fmt_delta(cur_m['revenueByMaster']['others'], prev_m['revenueByMaster']['others'] if prev_m else None, ' ₽')}")
-    lines.append(f"Визиты: {fmt_delta(cur_m['visits'], prev_m['visits'] if prev_m else None)}")
-    lines.append(f"Скидки: {fmt_delta(cur_m['discountTotal'], prev_m['discountTotal'] if prev_m else None, ' ₽')}")
+    lines.append(f"Выручка: {fmt_delta(cur_m['revenue'], (prev_m or {}).get('revenue'), ' ₽')}")
+    lines.append(f"  из них Эльвира: {fmt_delta(cur_m['revenueByMaster']['elvira'], prev_master.get('elvira'), ' ₽')}")
+    lines.append(f"  из них остальные: {fmt_delta(cur_m['revenueByMaster']['others'], prev_master.get('others'), ' ₽')}")
+    lines.append(f"Визиты: {fmt_delta(cur_m['visits'], (prev_m or {}).get('visits'))}")
+    lines.append(f"Скидки: {fmt_delta(cur_m['discountTotal'], (prev_m or {}).get('discountTotal'), ' ₽')}")
+
+    lines.append("")
+    lines.append("По типам:")
+    lines.append(f"  Услуги: {fmt_delta(cur_m['servicesRevenue'], (prev_m or {}).get('servicesRevenue'), ' ₽')}")
+    lines.append(f"  Товары: {fmt_delta(cur_m['goodsTotal']['sum'], prev_goods.get('sum'), ' ₽')}")
+    lines.append(f"  Абонементы: {fmt_delta(cur_m['subscriptionsTotal']['sum'], prev_subs.get('sum'), ' ₽')}")
+
+    plan = REVENUE_PLAN.get(latest)
+    if plan:
+        plan_total = plan["elvira"] + plan["others"]
+        fact_total = cur_m["revenueByMaster"]["elvira"] + cur_m["revenueByMaster"]["others"]
+        pct = round(fact_total / plan_total * 100, 1) if plan_total else 0
+        lines.append("")
+        lines.append(f"План-факт ({latest}): {fact_total:,} ₽ из {plan_total:,} ₽ ({pct}%)".replace(",", " "))
+        for who, label in (("elvira", "Эльвира"), ("others", "Остальные")):
+            f = cur_m["revenueByMaster"][who]
+            p = plan[who]
+            pct_who = round(f / p * 100, 1) if p else 0
+            lines.append(f"  {label}: {f:,} ₽ из {p:,} ₽ ({pct_who}%)".replace(",", " "))
 
     if prev is not None and latest not in prev:
         lines.append(f"Новый месяц в данных: {latest}")
