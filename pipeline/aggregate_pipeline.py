@@ -65,7 +65,7 @@ for _ym, _raw in MONTHLY_RAW.items():
 # (date + amount — a single certificate can be split across many redemptions). Matched into
 # the ledger via phone number (reliable, present on both sides) rather than name (found
 # comment/name text to be unreliable elsewhere in this project already).
-CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20250101_20260901.csv"
+CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20250101_20260914.csv"
 import csv as _csv
 _cert_credits_by_phone = defaultdict(list)  # phone -> [(sale_date, nominal), ...]
 with open(CERTIFICATES_CSV, encoding="utf-8") as _f:
@@ -179,6 +179,16 @@ INSTRUMENT_COVERED_MANUAL = {
     # Полностью закрываю обе строки услуг.
     (1899256635, 2): 14677.68,  # МОНАКО — весь разрыв
     (1899256635, 0): 6664.46,   # Ботулинотерапия — весь разрыв
+    # 2026-09-14: Настя прислала свежую выписку "Операции со счетами" (14.08-14.09.2026) —
+    # эти визиты были частичной оплатой (cost_to_pay > 0), поэтому автоматический ledger их
+    # не тронул (правило Журавлевой — партиальные гэпы по умолчанию genuine discount). Но
+    # выписка показывает прямое списание с депозита в тот же день на клиента с тем же
+    # телефоном — точное совпадение суммы/даты, не догадка.
+    (1905825039, 0): 20000,   # Сулейкина Наталья, Ботулинотерапия 09.09 — депозит, списание 20 000₽ 09.09 15:23
+    (1911293964, 0): 600,     # Тимохова Лариса, ЛЭ ПРЕМИУМ 12.09 — депозит, списание 600₽ 12.09 18:24
+    (1950503331, 0): 28.3,    # Бойко Снежана, ЛЭ Пакет ЛАЙТ 05.09 — депозит, списание 500₽ 05.09 (разбито на 3 строки чека)
+    (1950445173, 0): 157.23,  # Бойко Снежана, Контурная пластика губ 05.09 — тот же депозит-списание 500₽
+    (1950445173, 1): 314.47,  # Бойко Снежана, Армирование/векторный лифтинг 05.09 — тот же депозит-списание 500₽
 }
 INSTRUMENT_COVERED.update(INSTRUMENT_COVERED_MANUAL)
 
