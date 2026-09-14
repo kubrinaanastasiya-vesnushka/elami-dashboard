@@ -18,6 +18,13 @@ TYPE_MAP = {"Продажа товаров": "goods", "Продажа абоне
 # they're actually multi-session massage packages, should count as Абонементы. Reclassify
 # in both the summary sum+count row and the top-products table (excluded there entirely).
 RECLASSIFY_GOODS_AS_SUBSCRIPTION = {"Массаж Тринити терапия 6 процедур", "Массаж Тринити терапия 12 процедур"}
+# 2026-09-14: goods_transactions id 1804108434 (AG 12 Eye multipeptide anti aging cream,
+# 11.08.2026, client Маршинина Елизавета) has price=39 000₽/discount=90% — every other sale of
+# the same item that month has price=3 900₽/discount=0%, and cost_to_pay on this line is also
+# 3 900₽. This is a 10x data-entry typo on the price field, manually "corrected" via a 90%
+# discount back to the real price — net real discount is 0₽, not the 35 100₽ a naive
+# price-cost_to_pay gap would compute. Excluded from goods-discount accounting below.
+GOODS_DISCOUNT_DATA_ERROR_EXCLUDE = {1804108434}
 # Топы page (2026-07-27): Nastya wants top-10 services broken out per business area, with
 # "лазерка" and "массаж" each merging two real YClients categories into one table.
 TOP_CATEGORY_GROUPS = {
@@ -308,7 +315,12 @@ def month_metrics(ym):
             # bought, no trace of it under her own client_id in the API) — the API exposes no
             # link between a certificate and its redemption across clients.
             gap = first - paid
-            if gap > 0:
+            # Nastya (2026-09-14, rule 3): discount analysis only for visits that already
+            # happened (attendance == 1, "Пришёл") — a record still in "Ожидание"/confirmed-
+            # but-not-arrived status hasn't actually had its price finalized yet, so counting
+            # its gap as a discount would be premature. Scoped to discount accounting only —
+            # revenue/visits/specialists etc. above keep their existing broader definitions.
+            if gap > 0 and r.get("attendance") == 1:
                 covered = INSTRUMENT_COVERED.get((r["id"], _si), 0)
                 disc_amt = gap - covered
                 if disc_amt > 0:
@@ -326,6 +338,25 @@ def month_metrics(ym):
                 continue
             goods_seen[gid] = {"name": g.get("title", "—"), "revenue": g.get("cost_to_pay", 0) or 0, "qty": abs(g.get("amount", 0) or 0)}
             spec_goods_revenue[staff_name] += g.get("cost_to_pay", 0) or 0
+
+            # Nastya (2026-09-14, rule 2): discounts also apply to goods sales, not just
+            # services. Scoped to genuine retail cosmetics only — a goods_transactions line
+            # with a nonzero loyalty_abonement_id/loyalty_certificate_id IS the sale of an
+            # abonement/certificate PRODUCT itself (that's how YClients records it — e.g.
+            # "Пакет Стандарт 5 процедур", "Сертификат 5000руб"), not a retail item, and its
+            # price/list-price gap is package pricing already handled elsewhere (subs/certs),
+            # not a "product discount" — including it here would double-count against rule 1
+            # ("абонементы/сертификаты — не скидка"). Same attendance==1 gate as services.
+            if r.get("attendance") == 1 and not g.get("loyalty_abonement_id") and not g.get("loyalty_certificate_id") and g.get("id") not in GOODS_DISCOUNT_DATA_ERROR_EXCLUDE:
+                g_gap = (g.get("price", 0) or 0) - (g.get("cost_to_pay", 0) or 0)
+                if g_gap > 0:
+                    discount_total += g_gap
+                    labels = r.get("record_labels") or []
+                    if labels:
+                        for lbl in labels:
+                            discount_by_label[lbl["title"]] += g_gap
+                    else:
+                        discount_by_label["Без категории"] += g_gap
 
     # товары/абонементы/депозиты: transaction-based sum+count — same convention as
     # client_days_pipeline.py's TYPE_MAP, so this row ties to the same revenue definition
