@@ -6,7 +6,12 @@ cd "$(dirname "$0")"
 
 echo "[1/6] fetch_pipeline.py — тянем свежие данные из YClients API"
 python3 fetch_pipeline.py
-python3 fetch_goods_stock.py
+# fetch_goods_stock.py НЕ вызывается здесь (2026-09-18): YClients partner API отдаёт остатки
+# только по 7 позициям (эндпоинт /goods смотрит в модуль "Товары"/лояльность, не в каталог
+# кассы) — Настя прислала родной отчёт "Остатки на складах.xls" из кассы YClients с ~160
+# реальными позициями, он полнее и точнее. goods_stock.json теперь обновляется вручную из
+# такого xls-экспорта (тот же паттерн, что certificates/inventory_history.json) — запускать
+# fetch_goods_stock.py автоматически нельзя, иначе он затрёт ручные данные обратно на 7 штук.
 
 echo "[2/6] aggregate_pipeline.py — пересчитываем метрики"
 python3 aggregate_pipeline.py
