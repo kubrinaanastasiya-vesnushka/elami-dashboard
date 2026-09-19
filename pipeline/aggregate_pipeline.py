@@ -8,7 +8,7 @@ SERVICE_CAT = json.load(open("/root/agent-workspace/projects/elami-dashboard/pip
 SERVICE_CAT = {int(k): v for k, v in SERVICE_CAT.items()}
 MONTHLY_RAW = json.load(open("/root/agent-workspace/projects/elami-dashboard/pipeline/monthly_raw.json", encoding="utf-8"))
 
-REVENUE_EXPENSE_TYPES = {"Оказание услуг", "Продажа товаров", "Продажа абонементов", "Продажа сертификатов", "Пополнение счета"}
+REVENUE_EXPENSE_TYPES = {"Оказание услуг", "Продажа товаров", "Продажа абонементов", "Продажа сертификатов", "Пополнение счета", "Прочие доходы"}
 CAT_COLORS = ['#97C459', '#5DCAA5', '#EDA100', '#888780', '#6B8FCE', '#C77DBB']
 # same TYPE_MAP convention as client_days_pipeline.py — transactions-based sum+count,
 # consistent with how revenue is defined everywhere else in this dashboard (cash basis).
