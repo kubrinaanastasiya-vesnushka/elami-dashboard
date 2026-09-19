@@ -283,22 +283,45 @@ def month_metrics(ym):
     # booked visit — record_id 0) can't be attributed to a specific master and fall into
     # "остальные" by default, which is what keeps the two lines summing to the total.
     rec_staff_all = {r["id"]: (r.get("staff") or {}).get("name") for r in raw["records"]}
+    # Nastya (2026-09-19): checking Эльвира's August total against YClients' own финансовый
+    # отчёт found a 5 000₽ gap traced to goods sales where the record's booking staff differs
+    # from who actually rang up the retail item (goods_transactions has its own `master_id`,
+    # e.g. Влада's client record but Эльвира sold the retail cream during that visit). Build a
+    # staff-id lookup + a sold_item_id -> actual seller map so "Продажа товаров" transactions
+    # attribute to the real seller, not the visit's staff. (A residual ~10 810₽ gap remained
+    # unexplained after this fix — transactions' own `master` field comes back empty `[]` in
+    # this API pull, so there may be a further attribution signal we can't see; flagged to
+    # Nastya, not resolved.)
+    staff_by_id = {(r.get("staff") or {}).get("id"): (r.get("staff") or {}).get("name") for r in raw["records"]}
+    goods_seller_by_sold_item = {}
+    for _r in raw["records"]:
+        for _g in _r.get("goods_transactions", []):
+            _seller = staff_by_id.get(_g.get("master_id"))
+            if _seller:
+                goods_seller_by_sold_item[_g.get("id")] = _seller
+
+    def _tx_staff(_t):
+        if (_t.get("expense") or {}).get("title") == "Продажа товаров":
+            _seller = goods_seller_by_sold_item.get(_t.get("sold_item_id"))
+            if _seller:
+                return _seller
+        return rec_staff_all.get(_t.get("record_id"))
+
     elvira_revenue = sum(
         t["amount"] for t in transactions
         if (t.get("expense") or {}).get("title") in REVENUE_EXPENSE_TYPES
-        and rec_staff_all.get(t.get("record_id")) == "Эльвира Аминева"
+        and _tx_staff(t) == "Эльвира Аминева"
     )
     revenue_by_master = {"elvira": round(elvira_revenue), "others": round(revenue - elvira_revenue)}
 
     # Per-master total revenue (2026-09-04, Nastya's Мастера table request) — same attribution
-    # logic as elvira_revenue above (every revenue-type transaction via its record's staff),
-    # generalized to all masters rather than just the Эльвира/остальные split. Unattributed
-    # transactions (no record_id, e.g. retail sold without a booking) fall into "—", same
-    # default key used for staffless records elsewhere in this function.
+    # logic as elvira_revenue above, generalized to all masters rather than just the
+    # Эльвира/остальные split. Unattributed transactions (no record_id, e.g. retail sold
+    # without a booking) fall into "—", same default key used for staffless records elsewhere.
     revenue_by_master_all = defaultdict(float)
     for _t in transactions:
         if (_t.get("expense") or {}).get("title") in REVENUE_EXPENSE_TYPES:
-            revenue_by_master_all[rec_staff_all.get(_t.get("record_id")) or "—"] += _t["amount"]
+            revenue_by_master_all[_tx_staff(_t) or "—"] += _t["amount"]
 
     visit_ids = set()
     services_revenue = 0.0
@@ -393,7 +416,9 @@ def month_metrics(ym):
             if gid is None or gid in goods_seen:
                 continue
             goods_seen[gid] = {"name": g.get("title", "—"), "revenue": g.get("cost_to_pay", 0) or 0, "qty": abs(g.get("amount", 0) or 0)}
-            spec_goods_revenue[staff_name] += g.get("cost_to_pay", 0) or 0
+            # 2026-09-19: attribute to the actual seller (goods_transactions' own master_id),
+            # not the visit's booking staff — same fix as revenue_by_master_all above.
+            spec_goods_revenue[goods_seller_by_sold_item.get(gid) or staff_name] += g.get("cost_to_pay", 0) or 0
 
             # Nastya (2026-09-14, rule 2): discounts also apply to goods sales, not just
             # services. Scoped to genuine retail cosmetics only — a goods_transactions line
