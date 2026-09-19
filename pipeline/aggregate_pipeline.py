@@ -241,6 +241,38 @@ def month_metrics(ym):
     records = [r for r in raw["records"] if not r.get("deleted") and r.get("attendance", 1) != -1]
     transactions = raw["transactions"]
 
+    # Nastya (2026-09-19): "Сет Фреш" isn't sold as YClients' own "Сеты"-category product —
+    # staff enter it as three separate service lines at fixed set prices instead (found by
+    # her checking August manually: Кайгородова, Щеглова, Башкова, Соколова, Бурмак all had
+    # exactly this trio same-day). Detect the same pattern generically (any month) and fold
+    # those three lines into the "Сеты" category so they land next to the official "Сэт
+    # Базовый" instead of scattering into Инъекционная/Эстетическая. Count only the
+    # Биоревитализация line as "1 set sold" (not 3), so categoriesFull's count stays
+    # comparable to a real Сэт Базовый sale (1 line = 1 count) rather than inflating to 3.
+    SET_FRESH_COMBO = {
+        "Биоревитализация": 7700,
+        "Ботулинотерапия 1 зона": 2722,
+        "Атравматическая 3х-ступенчатая чистка (новый)": 1478,
+    }
+    _combo_by_client_date = defaultdict(dict)
+    for _r in records:
+        _c = _r.get("client") or {}
+        _cid = _c.get("id")
+        if _cid is None:
+            continue
+        _dkey = (_cid, _r["date"][:10])
+        for _si, _s in enumerate(_r.get("services", [])):
+            _t = _s.get("title")
+            if _t in SET_FRESH_COMBO and (_s.get("first_cost") or 0) == SET_FRESH_COMBO[_t]:
+                _combo_by_client_date[_dkey][_t] = (_r["id"], _si)
+    set_fresh_keys = set()       # (record_id, service_idx) -> recategorize as "Сеты"
+    set_fresh_count_anchor = set()  # subset of the above that should also count as "1 sale"
+    for _found in _combo_by_client_date.values():
+        if set(_found.keys()) == set(SET_FRESH_COMBO.keys()):
+            for _title, _key in _found.items():
+                set_fresh_keys.add(_key)
+            set_fresh_count_anchor.add(_found["Биоревитализация"])
+
     revenue = sum(t["amount"] for t in transactions if (t.get("expense") or {}).get("title") in REVENUE_EXPENSE_TYPES)
 
     # Nastya (2026-08-07): revenue split Эльвира vs остальные мастера for the Overview trend
@@ -319,10 +351,13 @@ def month_metrics(ym):
             spec_visits[staff_name].add(vid)
             cat_id = SERVICE_CAT.get(s["id"])
             cat_name = CAT_TITLE.get(cat_id, "Без категории")
+            _is_set_fresh_line = (r["id"], _si) in set_fresh_keys
+            if _is_set_fresh_line:
+                cat_name = "Сеты"
             cat_revenue[cat_name] += paid
-            cat_count[cat_name] += s.get("amount", 1) or 1
+            cat_count[cat_name] += (s.get("amount", 1) or 1) if not _is_set_fresh_line or (r["id"], _si) in set_fresh_count_anchor else 0
             cat_service_revenue[cat_name][s["title"]] += paid
-            cat_service_count[cat_name][s["title"]] += s.get("amount", 1) or 1
+            cat_service_count[cat_name][s["title"]] += (s.get("amount", 1) or 1) if not _is_set_fresh_line or (r["id"], _si) in set_fresh_count_anchor else 0
             service_revenue[s["title"]] += paid
             # Nastya's rule (2026-07-29, final): a discount is ANY gap between first_cost and
             # cost_to_pay, EXCEPT the portion actually paid for via a deposit/abonement/
