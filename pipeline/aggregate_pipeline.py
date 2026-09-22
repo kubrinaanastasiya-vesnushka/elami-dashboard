@@ -33,6 +33,10 @@ GOODS_DISCOUNT_DATA_ERROR_EXCLUDE = {1804108434}
 GOODS_INSTRUMENT_COVERED_MANUAL = {
     1871536521: 3807.64,  # Хасанова Альбина, ANGIOPHARM AO04 Vitamin C serum
     1871536524: 2569.17,  # Хасанова Альбина, ANGIOPHARM Azelaine cream
+    # Черкашина Екатерина, 22.09 — Настя подтвердила скриншотом чека: «Оплачено полностью»
+    # 3 700₽ двумя сертификатами «5000руб №101» (1700+2000).
+    1880753469: 1700,   # ANGIOPHARM AA18 Cleansing mask
+    1880753472: 2000,   # SET CABINET Multi-Vector Peeling
 }
 # Топы page (2026-07-27): Nastya wants top-10 services broken out per business area, with
 # "лазерка" and "массаж" each merging two real YClients categories into one table.
