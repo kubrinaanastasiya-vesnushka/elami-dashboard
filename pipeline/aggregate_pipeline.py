@@ -25,6 +25,15 @@ RECLASSIFY_GOODS_AS_SUBSCRIPTION = {"Массаж Тринити терапия 
 # discount back to the real price — net real discount is 0₽, not the 35 100₽ a naive
 # price-cost_to_pay gap would compute. Excluded from goods-discount accounting below.
 GOODS_DISCOUNT_DATA_ERROR_EXCLUDE = {1804108434}
+# Manual instrument coverage for GOODS lines (2026-09-22) — same idea as
+# INSTRUMENT_COVERED_MANUAL for services, but keyed by the goods_transaction's own permanent
+# id (stable across API fetches, unlike a positional service index). Confirmed via Nastya's
+# YClients receipt screenshot: Хасанова Альбина, 17.09 — «Оплачено полностью» 15 180₽ = карта
+# 5 180 + сертификат «10000руб №26.04-1» на три позиции чека (3 807,64 + 2 569,17 + 3 623,19).
+GOODS_INSTRUMENT_COVERED_MANUAL = {
+    1871536521: 3807.64,  # Хасанова Альбина, ANGIOPHARM AO04 Vitamin C serum
+    1871536524: 2569.17,  # Хасанова Альбина, ANGIOPHARM Azelaine cream
+}
 # Топы page (2026-07-27): Nastya wants top-10 services broken out per business area, with
 # "лазерка" and "массаж" each merging two real YClients categories into one table.
 TOP_CATEGORY_GROUPS = {
@@ -215,6 +224,8 @@ INSTRUMENT_COVERED_MANUAL_BY_TITLE = {
     # кем-то другим и подарен) — доверяю прямому скриншоту чека, а не экспорту.
     (1962813876, "Ботулинотерапия 1 зона"): 2272.73,
     (1962813876, "Сзт \"Фреш\""): 7727.27,
+    # Хасанова Альбина, 17.09 — тот же сертификат №26.04-1, третья позиция чека (услуга).
+    (1975377228, "Чистка+пилинг"): 3623.19,
 }
 _all_records_by_id = {r["id"]: r for _raw in MONTHLY_RAW.values() for r in _raw["records"]}
 INSTRUMENT_COVERED_MANUAL = {}
@@ -438,6 +449,7 @@ def month_metrics(ym):
             # ("абонементы/сертификаты — не скидка"). Same attendance==1 gate as services.
             if r.get("attendance") == 1 and not g.get("loyalty_abonement_id") and not g.get("loyalty_certificate_id") and g.get("id") not in GOODS_DISCOUNT_DATA_ERROR_EXCLUDE:
                 g_gap = (g.get("price", 0) or 0) - (g.get("cost_to_pay", 0) or 0)
+                g_gap -= GOODS_INSTRUMENT_COVERED_MANUAL.get(g.get("id"), 0)
                 if g_gap > 0:
                     discount_total += g_gap
                     labels = r.get("record_labels") or []
