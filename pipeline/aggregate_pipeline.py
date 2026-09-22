@@ -406,9 +406,17 @@ def month_metrics(ym):
             if _is_set_fresh_line:
                 cat_name = "Сеты"
             cat_revenue[cat_name] += paid
-            cat_count[cat_name] += (s.get("amount", 1) or 1) if not _is_set_fresh_line or (r["id"], _si) in set_fresh_count_anchor else 0
+            # Nastya (2026-09-22): caught count on Категории page jumping 555→686 July→August
+            # while revenue and average check both FELL — root cause was counting
+            # `s["amount"]` (a per-line pricing multiplier — for unit-priced services like
+            # Ботулинотерапия, the units of product injected, e.g. amount=20 for a 20-unit
+            # session) instead of counting actual procedures performed. One line = one
+            # procedure, regardless of how many units/ml it's priced by — count 1 per line so
+            # "Кол-во" means what the "усл." unit label on the dashboard already claims.
+            _count_incr = 1 if (not _is_set_fresh_line or (r["id"], _si) in set_fresh_count_anchor) else 0
+            cat_count[cat_name] += _count_incr
             cat_service_revenue[cat_name][s["title"]] += paid
-            cat_service_count[cat_name][s["title"]] += (s.get("amount", 1) or 1) if not _is_set_fresh_line or (r["id"], _si) in set_fresh_count_anchor else 0
+            cat_service_count[cat_name][s["title"]] += _count_incr
             service_revenue[s["title"]] += paid
             # Nastya's rule (2026-07-29, final): a discount is ANY gap between first_cost and
             # cost_to_pay, EXCEPT the portion actually paid for via a deposit/abonement/
