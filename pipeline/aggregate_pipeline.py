@@ -72,7 +72,7 @@ for _ym, _raw in MONTHLY_RAW.items():
 # (date + amount — a single certificate can be split across many redemptions). Matched into
 # the ledger via phone number (reliable, present on both sides) rather than name (found
 # comment/name text to be unreliable elsewhere in this project already).
-CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20250101_20260914.csv"
+CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20250101_20260922.csv"
 import csv as _csv
 _cert_credits_by_phone = defaultdict(list)  # phone -> [(sale_date, nominal), ...]
 with open(CERTIFICATES_CSV, encoding="utf-8") as _f:
@@ -207,6 +207,8 @@ INSTRUMENT_COVERED_MANUAL_BY_TITLE = {
     (1950503331, "ЛЭ Пакет ЛАЙТ"): 28.3,    # Бойко Снежана, 05.09 — депозит, списание 500₽ 05.09 (разбито на 3 строки чека)
     (1950445173, "Контурная пластика губ"): 157.23,  # Бойко Снежана, 05.09 — тот же депозит-списание 500₽
     (1950445173, "Армирование/векторный лифтинг"): 314.47,  # Бойко Снежана, 05.09 — тот же депозит-списание 500₽
+    # 2026-09-22: Настя прислала выписку "Операции со счетами" (22.08-22.09.2026).
+    (1966263141, "Ботулинотерапия ед."): 3900,  # Газизова Ирина, 15.09 — депозит, списание 3900₽ 15.09 18:10 (точное совпадение с гэпом)
 }
 _all_records_by_id = {r["id"]: r for _raw in MONTHLY_RAW.values() for r in _raw["records"]}
 INSTRUMENT_COVERED_MANUAL = {}
