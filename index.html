@@ -403,7 +403,24 @@
     <!-- ===================== GOALS ===================== -->
     <div class="view" id="view-goals">
       <div class="empty-note" style="background:rgba(255,255,255,0.08); color:#B4C99B; margin-bottom:14px;">
-        Отраслевые нормы (индустрия эстетической косметологии), зафиксированы Настей 2026-09-23 — ориентиры для сравнения, не жёсткие KPI. «Факт» показан там, где дашборд считает метрику напрямую из YClients; там, где нужны данные из Adesk/P&L (маржинальность, ФОТ, структура расходов) — «факт» не автоматический, смотреть в финансовых отчётах отдельно.
+        Отраслевые нормы (индустрия эстетической косметологии), зафиксированы Настей 2026-09-23 — ориентиры для сравнения, не жёсткие KPI. «Факт» показан там, где дашборд считает метрику напрямую из YClients; там, где нужны данные из Adesk/P&L (маржинальность, ФОТ, структура расходов) — заполняется вручную по мере поступления данных.
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+          <div style="font-size:13px; font-weight:600;">Норма vs Факт</div>
+          <div id="goalsTableSub" style="font-size:12px; color:var(--text-muted);"></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead><tr>
+              <th style="text-align:left; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Метрика</th>
+              <th style="text-align:left; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Норма</th>
+              <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Факт</th>
+            </tr></thead>
+            <tbody id="goalsTableBody"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="card">
@@ -1634,12 +1651,54 @@ function renderDiscountsView() {
     </tbody>`;
 }
 
+// Факт по метрикам, которых нет в YClients (маржинальность, ФОТ, структура расходов) —
+// заполняется вручную по мере того, как Настя присылает P&L/Adesk-выгрузки (2026-09-23).
+// value: null = ещё не заполнено, month: подпись месяца, к которому относится факт.
+const GOALS_FACT_MANUAL = {
+  // Заполнено 2026-09-23 по P&L Адеска (PnL-2026-09-23.xlsx), август — первый полностью
+  // закрытый месяц с дозаполненными ЗП. Сентябрь пока не показываю — «ЗП специалистов» там
+  // всё ещё 0 ₽ (payroll проводки обычно заносят в конце месяца), считать рано.
+  margin:        { value: '11,3%', month: 'август, операционная' },
+  fotTotal:      { value: '53,4%', month: 'август' },
+  fotMasters:    { value: '21,6%', month: 'август' },
+  fotAdmin:      { value: '5,8%', month: 'август' },
+  fotManagement: { value: '15,8%', month: 'август, упр.+CEO' },
+  loadNoDevice:  { value: null, month: null },
+  loadDevice:    { value: null, month: null },
+  purchases:     { value: '14,0%', month: 'август' },
+  rentOther:     { value: '20,7%', month: 'август' },
+  marketing:     { value: '0,5%', month: 'август' },
+};
+
 function renderGoalsView() {
   const cur = MONTHLY_DATA[currentMonth];
   document.getElementById('goalAvgCheckFact').textContent = `${fmtRub(cur.avgCheckTotal)} (${monthLabel(currentMonth)})`;
   const totalClients = cur.newClients + cur.repeatClients;
   const repeatPct = totalClients ? Math.round(cur.repeatClients / totalClients * 100 * 10) / 10 : 0;
   document.getElementById('goalRepeatFact').textContent = `${repeatPct}% (${monthLabel(currentMonth)})`;
+
+  document.getElementById('goalsTableSub').textContent = 'ручной факт заполняется по мере поступления данных';
+  const f = GOALS_FACT_MANUAL;
+  const manualRow = (key, label, norm) => {
+    const v = f[key];
+    const factText = v.value == null ? '—' : `${v.value}${v.month ? ` (${v.month})` : ''}`;
+    return `<tr><td style="padding:7px 10px; border-bottom:1px solid var(--border);">${label}</td><td style="padding:7px 10px; color:var(--text-muted); border-bottom:1px solid var(--border);">${norm}</td><td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); font-weight:600;">${factText}</td></tr>`;
+  };
+  const rows = [
+    manualRow('margin', 'Маржинальность (мин.)', '18–22%'),
+    manualRow('fotTotal', 'ФОТ общий', 'до 30%'),
+    manualRow('fotMasters', 'ФОТ мастера/врачи', 'до 20%'),
+    manualRow('fotAdmin', 'ФОТ админперсонал', '5–7%'),
+    manualRow('fotManagement', 'ФОТ управление', '3–5%'),
+    manualRow('loadNoDevice', 'Загрузка (без аппаратов)', '65–75%'),
+    manualRow('loadDevice', 'Загрузка (аппаратная)', '55–65%'),
+    manualRow('purchases', 'Закупки от выручки', '25–30%'),
+    manualRow('rentOther', 'Аренда+прочее от выручки', '5–10%'),
+    manualRow('marketing', 'Маркетинг от выручки', '5–10%'),
+    `<tr><td style="padding:7px 10px; border-bottom:1px solid var(--border);">Средний чек</td><td style="padding:7px 10px; color:var(--text-muted); border-bottom:1px solid var(--border);">8 000–14 000 ₽</td><td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); font-weight:600;">${fmtRub(cur.avgCheckTotal)} (${monthLabel(currentMonth)})</td></tr>`,
+    `<tr><td style="padding:7px 10px; border-bottom:1px solid var(--border);">Повторные визиты</td><td style="padding:7px 10px; color:var(--text-muted); border-bottom:1px solid var(--border);">50–70%</td><td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); font-weight:600;">${repeatPct}% (${monthLabel(currentMonth)})</td></tr>`,
+  ];
+  document.getElementById('goalsTableBody').innerHTML = rows.join('');
 }
 
 /* ====================== nav switching ====================== */
