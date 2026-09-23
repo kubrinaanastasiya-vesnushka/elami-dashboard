@@ -93,6 +93,7 @@
     <div class="navitem" data-view="clients"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px;"><path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /> <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /> <path d="M16 3.13a4 4 0 0 1 0 7.75" /> <path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg>Клиенты</div>
     <div class="navitem" data-view="masters"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px;"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /> <path d="M6 21v-2a4 4 0 0 1 4 -4h4" /> <path d="M17.8 20.817l-2.172 1.138a.392 .392 0 0 1 -.568 -.41l.415 -2.412l-1.757 -1.706a.389 .389 0 0 1 .217 -.665l2.428 -.352l1.086 -2.193a.392 .392 0 0 1 .702 0l1.086 2.193l2.428 .352a.39 .39 0 0 1 .217 .665l-1.757 1.706l.415 2.412a.392 .392 0 0 1 -.568 .41l-2.172 -1.138z" /></svg>Мастера</div>
     <div class="navitem" data-view="discounts"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px;"><path d="M9 15l6 -6" /> <path d="M9 9.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor" /> <path d="M14 14.5a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor" /> <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /></svg>Скидки</div>
+    <div class="navitem" data-view="goals"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px;"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /> <path d="M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0 -10 0" /> <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></svg>Цели</div>
     <div class="navitem disabled" style="margin-top:auto;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px;"><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6" /> <path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /> <path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>Финансы (скоро)</div>
   </div>
 
@@ -395,6 +396,91 @@
         <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Скидки по месяцам</div>
         <div style="overflow-x:auto;">
           <table id="discountsTable" style="width:100%; border-collapse:collapse; font-size:13px;"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== GOALS ===================== -->
+    <div class="view" id="view-goals">
+      <div class="empty-note" style="background:rgba(255,255,255,0.08); color:#B4C99B; margin-bottom:14px;">
+        Отраслевые нормы (индустрия эстетической косметологии), зафиксированы Настей 2026-09-23 — ориентиры для сравнения, не жёсткие KPI. «Факт» показан там, где дашборд считает метрику напрямую из YClients; там, где нужны данные из Adesk/P&L (маржинальность, ФОТ, структура расходов) — «факт» не автоматический, смотреть в финансовых отчётах отдельно.
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">1. Маржинальность (операционная маржа)</div>
+        <div style="font-size:13px; line-height:1.7;">
+          <div>Хорошая клиника: <b>25–35%</b></div>
+          <div>Рабочий минимум: <b>18–22%</b></div>
+          <div style="color:var(--text-danger);">Ниже 15% — красная зона</div>
+        </div>
+        <div class="empty-note" style="margin-top:10px;">Факт — не автоматический, считать по P&L (Adesk).</div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">2. ФОТ (фонд оплаты труда)</div>
+        <div style="font-size:13px; line-height:1.7;">
+          <div>Общий ФОТ — золотой стандарт: <b>до 30%</b> от выручки</div>
+          <div>Мастера/врачи: <b>до 20%</b> от выручки (40-50% — прибыль исчезает)</div>
+          <div>Админперсонал/менеджеры: <b>5–7%</b></div>
+          <div>Управление: <b>3–5%</b></div>
+        </div>
+        <div class="empty-note" style="margin-top:10px;">Факт — не автоматический, считать по P&L (Adesk).</div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">3. Загрузка (кабинеты/календарь)</div>
+        <div style="font-size:13px; line-height:1.7;">
+          <div>Косметология без аппаратов: <b>65–75%</b></div>
+          <div>Аппаратная косметология: <b>55–65%</b></div>
+          <div style="color:var(--text-danger);">Ниже 50% — тревожный звонок</div>
+        </div>
+        <div class="empty-note" style="margin-top:10px;">Факт — не автоматический (нужны данные расписания/окон), считать отдельно.</div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">4. Структура расходов от выручки</div>
+        <div style="font-size:13px; line-height:1.7;">
+          <div>ФОТ общий: <b>до 30%</b></div>
+          <div>Закупки: <b>25–30%</b></div>
+          <div>Аренда и прочие расходы: <b>5–10%</b></div>
+          <div>Маркетинг: <b>5–10%</b></div>
+        </div>
+        <div class="empty-note" style="margin-top:10px;">Факт — не автоматический, считать по P&L (Adesk).</div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">5. Средний чек</div>
+        <div style="font-size:13px; line-height:1.7;">
+          <div>Кабинеты/частники: <b>4 500–6 500 ₽</b></div>
+          <div>Клиники с инъекциями: <b>8 000–14 000 ₽</b></div>
+          <div>Премиум: <b>15 000–25 000 ₽</b></div>
+        </div>
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:12px; color:var(--text-muted);">Факт (текущий месяц)</span>
+          <span id="goalAvgCheckFact" style="font-size:16px; font-weight:600;"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">6. Повторные визиты</div>
+        <div style="font-size:13px; line-height:1.7;">
+          <div>Норма: <b>50–70%</b></div>
+          <div style="color:var(--text-danger);">Ниже 40% — дыра в воронке</div>
+        </div>
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:12px; color:var(--text-muted);">Факт (текущий месяц, доля повторных от всех клиентов)</span>
+          <span id="goalRepeatFact" style="font-size:16px; font-weight:600;"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Красные зоны</div>
+        <div style="font-size:13px; line-height:1.8;">
+          <div>❌ <b>ФОТ &gt; 45%</b> — сотрудники работают лучше, чем бизнес-модель</div>
+          <div>❌ <b>Рентабельность &lt; 20%</b> — работаете ради оборота, а не ради прибыли</div>
+          <div>❌ <b>Загрузка &lt; 55%</b> — не контролируете спрос и предложение</div>
+          <div>❌ <b>Маркетинг даёт клиентов, но нет повторов</b> — клиника продаёт, но не удерживает</div>
+          <div>❌ <b>Хронический кассовый разрыв у собственника</b> — не норма индустрии, диагноз управлению</div>
         </div>
       </div>
     </div>
@@ -1548,6 +1634,14 @@ function renderDiscountsView() {
     </tbody>`;
 }
 
+function renderGoalsView() {
+  const cur = MONTHLY_DATA[currentMonth];
+  document.getElementById('goalAvgCheckFact').textContent = `${fmtRub(cur.avgCheckTotal)} (${monthLabel(currentMonth)})`;
+  const totalClients = cur.newClients + cur.repeatClients;
+  const repeatPct = totalClients ? Math.round(cur.repeatClients / totalClients * 100 * 10) / 10 : 0;
+  document.getElementById('goalRepeatFact').textContent = `${repeatPct}% (${monthLabel(currentMonth)})`;
+}
+
 /* ====================== nav switching ====================== */
 const viewRenderers = {
   overview: null, // rendered on load
@@ -1558,6 +1652,7 @@ const viewRenderers = {
   clients: renderClientsView,
   masters: renderMastersView,
   discounts: renderDiscountsView,
+  goals: renderGoalsView,
 };
 const viewTitles = {
   overview: ['Дашборд ЭЛАМИ', ''],
@@ -1568,6 +1663,7 @@ const viewTitles = {
   clients: ['Клиенты', 'Новые, повторные, место записи, откуда узнали, услуги и мастер первого визита — сравнение по месяцам'],
   masters: ['Мастера', 'Новые/повторные клиенты, возврат в клинику и лояльность к мастеру — сравнение по месяцам'],
   discounts: ['Скидки', 'Разбивка скидок по категориям записей'],
+  goals: ['Цели', 'Отраслевые нормы и текущие показатели клиники'],
 };
 
 let currentView = 'overview';
@@ -1582,7 +1678,7 @@ document.querySelectorAll('.navitem[data-view]').forEach(item => {
     document.getElementById('pageTitle').textContent = viewTitles[view][0];
     document.getElementById('pageSub').textContent = view === 'overview'
       ? 'Данные напрямую из API YClients (records + transactions)'
-      : viewTitles[view][1] + (view!=='clientdays' && view!=='discounts' && view!=='categories' && view!=='tops' && view!=='goods' && view!=='clients' && view!=='masters' ? monthLabel(currentMonth) : '');
+      : viewTitles[view][1] + (view!=='clientdays' && view!=='discounts' && view!=='categories' && view!=='tops' && view!=='goods' && view!=='clients' && view!=='masters' && view!=='goals' ? monthLabel(currentMonth) : '');
     document.getElementById('periodToggle').style.display = (view === 'overview' || view === 'discounts' || view === 'categories' || view === 'tops' || view === 'goods' || view === 'clients' || view === 'masters') ? 'flex' : 'none';
     if (viewRenderers[view]) viewRenderers[view]();
   });
