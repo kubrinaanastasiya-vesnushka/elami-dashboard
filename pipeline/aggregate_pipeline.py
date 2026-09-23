@@ -117,6 +117,28 @@ for _ym, _raw in MONTHLY_RAW.items():
         if _phone and _cid is not None and _phone not in _phone_to_cid:
             _phone_to_cid[_phone] = _cid
 
+# Abonement NAMES for record-less "Продажа абонементов" transactions (2026-09-23, Nastya's
+# request): same root cause as certificates above — a subscription sold at the register
+# without an attached booking (record_id=0) never appears in any record's goods_transactions,
+# so the pipeline had nothing to read a title from and fell back to "Без названия" on the
+# Товары page. Nastya's regular "Абонементы" export (Аналитика → Абонементы) has the real
+# title, so match by (phone, sale date, price) — the same triple that uniquely identifies a
+# sale in that report, no other shared key available.
+ABONEMENTS_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/abonements_20260101_20260923.csv"
+_abon_name_by_key = {}  # (phone, "YYYY-MM-DD", round(amount)) -> title
+with open(ABONEMENTS_CSV, encoding="utf-8") as _f:
+    _abon_rows = list(_csv.reader(_f))
+for _row in _abon_rows[1:]:
+    if len(_row) < 7 or not _row[0]:  # new abonement row — Номер present
+        continue
+    _a_title, _a_phone, _a_price, _a_saledate = _row[1], _row[4].strip(), _row[5], _row[6].strip()
+    if _a_phone and _a_saledate and _a_price:
+        try:
+            _a_dt = datetime.strptime(_a_saledate, "%d.%m.%Y").strftime("%Y-%m-%d")
+            _abon_name_by_key[(_a_phone, _a_dt, round(float(_a_price)))] = _a_title
+        except ValueError:
+            pass
+
 for _phone, _credits in _cert_credits_by_phone.items():
     _cid = _phone_to_cid.get(_phone)
     if _cid is not None:
@@ -517,7 +539,12 @@ def month_metrics(ym):
     subs_agg = defaultdict(lambda: {"revenue": 0.0, "qty": 0})
     for t in transactions:
         if (t.get("expense") or {}).get("title") == "Продажа абонементов":
-            name = goods_seen.get(t.get("sold_item_id"), {}).get("name") or "Без названия"
+            name = goods_seen.get(t.get("sold_item_id"), {}).get("name")
+            if not name:
+                _t_phone = (t.get("client") or {}).get("phone", "").lstrip("+")
+                _t_date = t["date"][:10]
+                name = _abon_name_by_key.get((_t_phone, _t_date, round(t["amount"])))
+            name = name or "Без названия"
             subs_agg[name]["revenue"] += t["amount"]
             subs_agg[name]["qty"] += 1
     subs_list = sorted(
