@@ -124,7 +124,7 @@ for _ym, _raw in MONTHLY_RAW.items():
 # Товары page. Nastya's regular "Абонементы" export (Аналитика → Абонементы) has the real
 # title, so match by (phone, sale date, price) — the same triple that uniquely identifies a
 # sale in that report, no other shared key available.
-ABONEMENTS_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/abonements_20260101_20260923.csv"
+ABONEMENTS_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/abonements_20250101_20260923.csv"
 _abon_name_by_key = {}  # (phone, "YYYY-MM-DD", round(amount)) -> title
 with open(ABONEMENTS_CSV, encoding="utf-8") as _f:
     _abon_rows = list(_csv.reader(_f))
