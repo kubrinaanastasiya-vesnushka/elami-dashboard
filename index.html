@@ -1655,19 +1655,20 @@ function renderDiscountsView() {
 // заполняется вручную по мере того, как Настя присылает P&L/Adesk-выгрузки (2026-09-23).
 // value: null = ещё не заполнено, month: подпись месяца, к которому относится факт.
 const GOALS_FACT_MANUAL = {
-  // Заполнено 2026-09-23 по P&L Адеска (PnL-2026-09-23.xlsx), август — первый полностью
-  // закрытый месяц с дозаполненными ЗП. Сентябрь пока не показываю — «ЗП специалистов» там
-  // всё ещё 0 ₽ (payroll проводки обычно заносят в конце месяца), считать рано.
-  margin:        { value: '11,3%', month: 'август, операционная' },
-  fotTotal:      { value: '53,4%', month: 'август' },
-  fotMasters:    { value: '21,6%', month: 'август' },
-  fotAdmin:      { value: '5,8%', month: 'август' },
-  fotManagement: { value: '15,8%', month: 'август, упр.+CEO' },
+  // Заполнено 2026-09-23 по P&L Адеска (PnL-2026-09-23.xlsx) — среднее июнь-август 2026,
+  // считано агрегатом (сумма расходов / сумма выручки за 3 месяца), не средним процентов.
+  // Сентябрь не включён — «ЗП специалистов» там ещё 0 ₽ на дату выгрузки (payroll заносят
+  // в конце месяца).
+  margin:        { value: '5,9%', month: 'июнь-август, операционная' },
+  fotTotal:      { value: '42,1%', month: 'июнь-август' },
+  fotMasters:    { value: '23,0%', month: 'июнь-август' },
+  fotAdmin:      { value: '4,2%', month: 'июнь-август' },
+  fotManagement: { value: '8,0%', month: 'июнь-август, упр.+CEO' },
   loadNoDevice:  { value: null, month: null },
   loadDevice:    { value: null, month: null },
-  purchases:     { value: '14,0%', month: 'август' },
-  rentOther:     { value: '20,7%', month: 'август' },
-  marketing:     { value: '0,5%', month: 'август' },
+  purchases:     { value: '32,7%', month: 'июнь-август' },
+  rentOther:     { value: '17,6%', month: 'июнь-август' },
+  marketing:     { value: '1,6%', month: 'июнь-август' },
 };
 
 function renderGoalsView() {
