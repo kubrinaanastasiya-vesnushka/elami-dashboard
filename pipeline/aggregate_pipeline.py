@@ -9,6 +9,12 @@ SERVICE_CAT = {int(k): v for k, v in SERVICE_CAT.items()}
 MONTHLY_RAW = json.load(open("/root/agent-workspace/projects/elami-dashboard/pipeline/monthly_raw.json", encoding="utf-8"))
 
 REVENUE_EXPENSE_TYPES = {"Оказание услуг", "Продажа товаров", "Продажа абонементов", "Продажа сертификатов", "Пополнение счета", "Прочие доходы"}
+# План по выручке, зафиксированный в Финмодель_ЭЛАМИ.xlsx (лист ПРОГНОЗ) — обновлять вручную
+# при каждой новой договорённости о плане на следующий месяц. Единственный источник правды
+# (раньше дублировался в summarize_changes.py — теперь тот читает это же поле из MONTHLY_DATA).
+REVENUE_PLAN = {
+    "2026-09": {"elvira": 1300000, "others": 1000000},
+}
 CAT_COLORS = ['#97C459', '#5DCAA5', '#EDA100', '#888780', '#6B8FCE', '#C77DBB']
 # same TYPE_MAP convention as client_days_pipeline.py — transactions-based sum+count,
 # consistent with how revenue is defined everywhere else in this dashboard (cash basis).
@@ -628,6 +634,7 @@ def month_metrics(ym):
         "discountPctOfServices": round(discount_total/(services_revenue+by_type_sum.get("goods", 0)+discount_total)*100, 1) if (services_revenue+by_type_sum.get("goods", 0)+discount_total) else 0,
         "discountByLabel": [{"name": k, "amount": round(v)} for k, v in sorted(discount_by_label.items(), key=lambda x: -x[1])],
         "revenueByMaster": revenue_by_master,
+        "revenuePlan": REVENUE_PLAN.get(ym),
     }
 
 MONTHLY_DATA = {ym: month_metrics(ym) for ym in MONTHLY_RAW}

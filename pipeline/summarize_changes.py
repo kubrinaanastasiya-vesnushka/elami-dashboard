@@ -7,13 +7,6 @@ PREV_PATH = f"{PIPE}/monthly_data_v2.prev.json"
 BOT_TOKEN_FILE = "/root/elamik-home/.claude/channels/telegram/.env"
 CHAT_ID = "289566273"  # Настя
 
-# План по выручке, зафиксированный в Финмодель_ЭЛАМИ.xlsx (лист ПРОГНОЗ) — обновлять вручную
-# при каждой новой договорённости о плане на следующий месяц (см. MEMORY.md, сентябрь 2026).
-REVENUE_PLAN = {
-    "2026-09": {"elvira": 1300000, "others": 1000000},
-}
-
-
 def load_token():
     for line in open(BOT_TOKEN_FILE):
         if line.startswith("TELEGRAM_BOT_TOKEN="):
@@ -69,7 +62,7 @@ def main():
     lines.append(f"  Товары: {fmt_delta(cur_m['goodsTotal']['sum'], prev_goods.get('sum'), ' ₽')}")
     lines.append(f"  Абонементы: {fmt_delta(cur_m['subscriptionsTotal']['sum'], prev_subs.get('sum'), ' ₽')}")
 
-    plan = REVENUE_PLAN.get(latest)
+    plan = cur_m.get("revenuePlan")
     if plan:
         plan_total = plan["elvira"] + plan["others"]
         fact_total = cur_m["revenueByMaster"]["elvira"] + cur_m["revenueByMaster"]["others"]
