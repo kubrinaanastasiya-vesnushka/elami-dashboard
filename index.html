@@ -1286,14 +1286,16 @@ function renderInventoryHistory() {
   }
   const sorted = [...INVENTORY_HISTORY].sort((a, b) => b.date.localeCompare(a.date));
   el.innerHTML = sorted.map(inv => {
-    if (!inv.items.length) {
+    // Nastya (2026-09-25): не интересна косметика собственного бренда Elami в этом разделе.
+    const items = inv.items.filter(it => it.category !== 'Elami');
+    if (!items.length) {
       return `
         <div style="margin-bottom:16px;">
           <div style="font-size:12px; font-weight:600; margin-bottom:6px;">${monthLabel(inv.date.slice(0,7))} · ${inv.date.split('-').reverse().join('.')}</div>
           <div class="empty-note">Расхождений не найдено — расчётный остаток совпал с фактическим по всем позициям.</div>
         </div>`;
     }
-    const sortedItems = [...inv.items].sort((a, b) => b.diff - a.diff);
+    const sortedItems = [...items].sort((a, b) => b.diff - a.diff);
     const rows = sortedItems.map(it => `
       <tr>
         <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:normal; max-width:320px; line-height:1.35;">${it.name}</td>
@@ -1304,7 +1306,7 @@ function renderInventoryHistory() {
       </tr>`).join('');
     return `
       <div style="margin-bottom:16px;">
-        <div style="font-size:12px; font-weight:600; margin-bottom:6px;">${inv.date.split('-').reverse().join('.')} · ${inv.items.length} расхожден${inv.items.length===1?'ие':(inv.items.length<5?'ия':'ий')}</div>
+        <div style="font-size:12px; font-weight:600; margin-bottom:6px;">${inv.date.split('-').reverse().join('.')} · ${items.length} расхожден${items.length===1?'ие':(items.length<5?'ия':'ий')}</div>
         <div style="overflow-x:auto;">
           <table style="width:100%; border-collapse:collapse; font-size:13px;">
             <thead><tr>
