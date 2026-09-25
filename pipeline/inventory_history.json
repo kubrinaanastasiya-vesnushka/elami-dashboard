@@ -108,5 +108,290 @@
         "diff": 1.0
       }
     ]
+  },
+  {
+    "date": "2026-09-24",
+    "items": [
+      {
+        "category": "Angiopharm",
+        "name": "ANGIOPHARM SE04 Azelaine soft cream / крем с азелаиновой кислотой для чувствительной кожи 50 мл.",
+        "calc": 4.0,
+        "fact": 3.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Angiopharm",
+        "name": "ANGIOPHARM AA18 Cleansing mask / очищающая маска 75мл.",
+        "calc": 3.0,
+        "fact": 4.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Angiopharm",
+        "name": "ANGIOPHARM CL23 Silk amino acids cleansing gel / гель для умывания с аминокислотами шелка 200мл.",
+        "calc": 3.0,
+        "fact": 4.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Angiopharm",
+        "name": "ANGIOPHARM AO04 Vitamin C serum / сыворотка с витамином С 10% 30мл.",
+        "calc": 3.0,
+        "fact": 5.0,
+        "diff": -2.0
+      },
+      {
+        "category": "Angiopharm",
+        "name": "ANGIOPHARM AG12 Eye multipeptide anti aging cream / мультипептидный омолаживающий крем для кожи вокруг глаз 30мл.",
+        "calc": 2.0,
+        "fact": 1.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Angiopharm",
+        "name": "ANGIOPHARM HPR eye cream / крем для кожи вокруг глаз с HPR 30мл.",
+        "calc": 2.0,
+        "fact": 3.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Angiopharm",
+        "name": "ANGIOPHARM Anti aging mask / омолаживающая маска 75мл.",
+        "calc": 4.0,
+        "fact": 6.0,
+        "diff": -2.0
+      },
+      {
+        "category": "Angiopharm",
+        "name": "ANGIOPHARM Дорожный набор (Тоник, гель для умывания 50мл.)",
+        "calc": 10.0,
+        "fact": 8.0,
+        "diff": 2.0
+      },
+      {
+        "category": "Elami",
+        "name": "ELAMI Маска тканевая увлажняющая",
+        "calc": 19.0,
+        "fact": 14.0,
+        "diff": 5.0
+      },
+      {
+        "category": "Elami",
+        "name": "ELAMI Бальзам для губ",
+        "calc": 47.0,
+        "fact": 33.0,
+        "diff": 14.0
+      },
+      {
+        "category": "Elami",
+        "name": "ELAMI Пенка для умывания с гилауроновой кислотой 160мл.",
+        "calc": 28.0,
+        "fact": 17.0,
+        "diff": 11.0
+      },
+      {
+        "category": "Elami",
+        "name": "ELAMI Шиммер крем для тела сияние и увлажнение 100мл.",
+        "calc": 5.0,
+        "fact": 23.0,
+        "diff": -18.0
+      },
+      {
+        "category": "Без категории",
+        "name": "GENEVIE моё солнце Ласьон для тела солнцезащитный SPF50 150мл",
+        "calc": 0.0,
+        "fact": 1.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Levissime",
+        "name": "LEVISSIME Sleeping eye mask / Ночная маска для глаз 30мл.",
+        "calc": 3.0,
+        "fact": 2.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Levissime",
+        "name": "LEVISSIME Multiactive cream / укрепляющий крем мультиактив 50мл.",
+        "calc": 2.0,
+        "fact": 3.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Mediderma",
+        "name": "MEDIDERMA Sunyses MD Sun Cream / Солнцезащитный крем SPF50 30мл.",
+        "calc": 4.0,
+        "fact": 3.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Mediderma",
+        "name": "MEDIDERMA Hylanses MD Cleanses Mousse / Мусс для умывания 200мл.",
+        "calc": 6.0,
+        "fact": 4.0,
+        "diff": 2.0
+      },
+      {
+        "category": "Mediderma",
+        "name": "MEDIDERMA C-Defense MD Eye Cream / Крем для кожи вокруг глаз 15мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Renew systema",
+        "name": "RENEW SYSTEM Sun protector Expert / Солнцезащитный крем 50мл.",
+        "calc": 2.0,
+        "fact": 3.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Renew systema",
+        "name": "RENEW SYSTEM Sun Protector BB cream SPF50 / защитный ВВ крем с SPF50, 50мл.",
+        "calc": 4.0,
+        "fact": 10.0,
+        "diff": -6.0
+      },
+      {
+        "category": "Sensilis",
+        "name": "SENSILIS Solar allergy / солнцезащитный флюид SPF50 40мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Sesderma",
+        "name": "SESDERMA Sensyses Classic Cleanser / Очищающий тоник для лица 200мл.",
+        "calc": 1.0,
+        "fact": 2.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Sesderma",
+        "name": "SESDERMA Mandelac Moisturising gel / Увлажняющий гель для лица 50мл.",
+        "calc": 4.0,
+        "fact": 5.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Sesderma",
+        "name": "SESDERMA C-Vit Radiance Glowimg fluid / Сияющий флюид для лица 50мл.",
+        "calc": 4.0,
+        "fact": 2.0,
+        "diff": 2.0
+      },
+      {
+        "category": "Sesderma",
+        "name": "SESDERMA Retiage 3 Retinol system Anti-aging Cream-Gel / Крем для возрастной кожи с ретинолом 50мл.",
+        "calc": 13.0,
+        "fact": 7.0,
+        "diff": 6.0
+      },
+      {
+        "category": "Sesderma",
+        "name": "SESDERMA Seskavel Anti-hair loss shampoo / шампунь для волос от выпадения 50мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Без категории",
+        "name": "SESDERMA C-VIT Eye contour cream / крем для кожи вокруг глаз с витамином С 15мл.",
+        "calc": 3.0,
+        "fact": 2.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Sesderma",
+        "name": "SESDERMA SENSYSES CLEANSER classic / очищающий гель для умывания 250мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Sesderma",
+        "name": "SESDERMA SENSYSES Cleanser hyaluronic 250мл.",
+        "calc": 6.0,
+        "fact": 5.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Set Cabinet",
+        "name": "SET CABINET Multi-Vector Peeling | мультивекторный пилинг 50мл/",
+        "calc": 6.0,
+        "fact": 5.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Skinosophy",
+        "name": "SKINOSOPHY Drainage azulene mask / Дренажная азуленовая маска 75мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Skinosophy",
+        "name": "SKINOSOPHY Brightening cleansing gel / Гель для умывания 150мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Skinosophy",
+        "name": "SKINOSOPHY Nano Lifting lotion / Нанолифтинг лосьон 125мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Skinosophy",
+        "name": "SKINOSOPHY Serum Vit.K / Cывротка с витамином К 30мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Skinosophy",
+        "name": "SKINOSOPHY Nano White serum Vit.C / отбеливающая сыворотка с витамином С 50мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Skinosophy",
+        "name": "SKINOSOPHY Drainage mask / дренажная маска для лица 50мл.",
+        "calc": 2.0,
+        "fact": 0.0,
+        "diff": 2.0
+      },
+      {
+        "category": "Skinosophy",
+        "name": "SKINOSOPHY Azulene cream / азелаиновый крем 50мл.",
+        "calc": 1.0,
+        "fact": 0.0,
+        "diff": 1.0
+      },
+      {
+        "category": "Zorya",
+        "name": "ZORYA Бальзам восстанавливающий для поврежденных и пористых волос 250мл.",
+        "calc": 3.0,
+        "fact": 4.0,
+        "diff": -1.0
+      },
+      {
+        "category": "Без категории",
+        "name": "ZORYA Увлажняющий кондиционер для реанимации  сухих, обезвоженных и ломких волос 250мл.",
+        "calc": 0.0,
+        "fact": 4.0,
+        "diff": -4.0
+      },
+      {
+        "category": "Без категории",
+        "name": "ZORYA Пенка для умывания бессульфатная, 160мл.",
+        "calc": 0.0,
+        "fact": 1.0,
+        "diff": -1.0
+      }
+    ]
   }
 ]
