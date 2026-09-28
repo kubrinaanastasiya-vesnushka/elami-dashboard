@@ -15,6 +15,17 @@ REVENUE_EXPENSE_TYPES = {"Оказание услуг", "Продажа това
 REVENUE_PLAN = {
     "2026-09": {"elvira": 1300000, "others": 1000000},
 }
+# Manual per-master attribution for record-less transactions (2026-09-28) — retail sales/
+# deposit top-ups with no booking (record_id=0) have NO staff signal anywhere in the partner
+# API (not on the transaction, not on the goods_transactions line, since it's not attached to
+# any record at all). YClients' own UI can filter "Финансовые операции" by сотрудник anyway
+# (via some internal link our API doesn't expose) — Nastya confirmed by sending Эльвирин
+# filtered отчёт which named specific document_id's as hers. Key by document_id (transaction's
+# own permanent id), not record/goods id, since these have neither.
+MANUAL_STAFF_BY_DOCUMENT = {
+    "2275015398": "Эльвира Аминева",  # Жангирова Алсу, 26.09, розница без записи — подтверждено Настиной выгрузкой по Эльвире
+    "2275004310": "Эльвира Аминева",  # Жангирова Алсу, 26.09, розница без записи (3 позиции в одном документе)
+}
 CAT_COLORS = ['#97C459', '#5DCAA5', '#EDA100', '#888780', '#6B8FCE', '#C77DBB']
 # same TYPE_MAP convention as client_days_pipeline.py — transactions-based sum+count,
 # consistent with how revenue is defined everywhere else in this dashboard (cash basis).
@@ -357,6 +368,9 @@ def month_metrics(ym):
                 goods_seller_by_sold_item[_g.get("id")] = _seller
 
     def _tx_staff(_t):
+        _manual = MANUAL_STAFF_BY_DOCUMENT.get(str(_t.get("document_id")))
+        if _manual:
+            return _manual
         if (_t.get("expense") or {}).get("title") == "Продажа товаров":
             _seller = goods_seller_by_sold_item.get(_t.get("sold_item_id"))
             if _seller:
@@ -591,6 +605,17 @@ def month_metrics(ym):
         {"name": name, "revenue": round(val), "count": round(cat_count[name]), "pct": round(val/cat_total*100, 1) if cat_total else 0}
         for name, val in cat_items
     ]
+
+    # Record-less goods sales matched via MANUAL_STAFF_BY_DOCUMENT never pass through the
+    # records loop above (no record to attach to), so spec_goods_revenue would silently miss
+    # them even though revenue_by_master_all (via _tx_staff) already counts them — patch here
+    # for consistency between the "Мастера" table's Продажи косметики column and its total.
+    for _t in transactions:
+        if (_t.get("expense") or {}).get("title") != "Продажа товаров":
+            continue
+        _manual_staff = MANUAL_STAFF_BY_DOCUMENT.get(str(_t.get("document_id")))
+        if _manual_staff and not _t.get("record_id"):
+            spec_goods_revenue[_manual_staff] += _t["amount"]
 
     specialists = sorted(
         [{"name": n, "revenue": round(v), "avgCheck": round(v/len(spec_visits[n])) if spec_visits[n] else 0, "visits": len(spec_visits[n]),
