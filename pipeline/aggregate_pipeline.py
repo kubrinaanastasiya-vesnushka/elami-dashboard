@@ -718,7 +718,7 @@ for ym, d in MONTHLY_RAW.items():
         if dt > NOW:
             continue
         rec_services = [{"title": s["title"], "cost_to_pay": s.get("cost_to_pay", 0) or 0} for s in r.get("services", [])]
-        all_recs.append({"cid": client["id"], "date": dt, "staff": (r.get("staff") or {}).get("name", "—"), "is_new": bool(client.get("is_new")), "services": rec_services})
+        all_recs.append({"cid": client["id"], "name": client.get("name"), "phone": client.get("phone"), "date": dt, "staff": (r.get("staff") or {}).get("name", "—"), "is_new": bool(client.get("is_new")), "services": rec_services})
 
 by_client = defaultdict(list)
 for rec in all_recs:
@@ -792,6 +792,31 @@ for ym in MONTHLY_DATA:
     MONTHLY_DATA[ym]["masterLoyalty"] = [
         {"name": n, **v} for n, v in sorted(master_loyalty[ym].items(), key=lambda x: -x[1]["cohortSize"])
     ]
+
+# ====================== "Возврат после перерыва" (2026-10-01, Nastya's request) ======================
+# Клиенты, у которых между двумя последовательными визитами разрыв 90+ дней — визит ПОСЛЕ
+# разрыва засчитывается в месяц, когда он произошёл. Это другая метрика, чем «Возврат в
+# клинику (90 дней)» выше (та смотрит вперёд от когорты новых клиентов месяца; эта смотрит
+# назад от каждого визита, независимо от того, новый клиент или старый). Считаем по тому же
+# `by_client` (полная история визитов на клиента), простым перебором соседних пар визитов.
+RETURN_AFTER_BREAK_DAYS = 90
+returned_after_break = defaultdict(list)
+for cid, recs in by_client.items():
+    for i in range(1, len(recs)):
+        gap_days = (recs[i]["date"] - recs[i - 1]["date"]).days
+        if gap_days >= RETURN_AFTER_BREAK_DAYS:
+            ym = recs[i]["date"].strftime("%Y-%m")
+            returned_after_break[ym].append({
+                "name": recs[i]["name"],
+                "phone": recs[i]["phone"],
+                "lastVisit": recs[i - 1]["date"].strftime("%Y-%m-%d"),
+                "returnVisit": recs[i]["date"].strftime("%Y-%m-%d"),
+                "gapDays": gap_days,
+            })
+
+for ym in MONTHLY_DATA:
+    items = sorted(returned_after_break.get(ym, []), key=lambda x: -x["gapDays"])
+    MONTHLY_DATA[ym]["returnedAfterBreak"] = {"count": len(items), "items": items}
 
 # ====================== new clients: first-month services + first master (2026-08-04, Nastya's request) ======================
 # For each cohort of new clients (first-ever visit, is_new-verified, landing in month ym):
