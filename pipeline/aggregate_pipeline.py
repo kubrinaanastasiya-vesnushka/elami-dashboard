@@ -815,6 +815,7 @@ for cid, recs in by_client.items():
                 "gapDays": gap_days,
                 "services": ", ".join(s["title"] for s in _svc),
                 "check": round(sum(s["cost_to_pay"] for s in _svc)),
+                "staff": recs[i]["staff"],
             })
 
 for ym in MONTHLY_DATA:
