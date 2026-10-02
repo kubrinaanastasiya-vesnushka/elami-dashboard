@@ -1,0 +1,40 @@
+[1/6] fetch_pipeline.py — тянем свежие данные из YClients API
+categories: 10 services: 126
+2025-01 records: 168 transactions: 120
+2025-02 records: 222 transactions: 182
+2025-03 records: 317 transactions: 234
+2025-04 records: 229 transactions: 199
+2025-05 records: 368 transactions: 323
+2025-06 records: 216 transactions: 174
+Traceback (most recent call last):
+  File "/root/agent-workspace/projects/elami-dashboard/pipeline/fetch_pipeline.py", line 66, in <module>
+    records = fetch_records(start, end)
+  File "/root/agent-workspace/projects/elami-dashboard/pipeline/fetch_pipeline.py", line 47, in fetch_records
+    d = api_get(f"records/{COMPANY_ID}", f"?start_date={start}&end_date={end}&count=1000")
+  File "/root/agent-workspace/projects/elami-dashboard/pipeline/fetch_pipeline.py", line 18, in api_get
+    with urllib.request.urlopen(req, timeout=30) as resp:
+  File "/usr/lib/python3.10/urllib/request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+  File "/usr/lib/python3.10/urllib/request.py", line 519, in open
+    response = self._open(req, data)
+  File "/usr/lib/python3.10/urllib/request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+  File "/usr/lib/python3.10/urllib/request.py", line 496, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.10/urllib/request.py", line 1391, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+  File "/usr/lib/python3.10/urllib/request.py", line 1352, in do_open
+    r = h.getresponse()
+  File "/usr/lib/python3.10/http/client.py", line 1404, in getresponse
+    response.begin()
+  File "/usr/lib/python3.10/http/client.py", line 323, in begin
+    version, status, reason = self._read_status()
+  File "/usr/lib/python3.10/http/client.py", line 284, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/usr/lib/python3.10/socket.py", line 705, in readinto
+    return self._sock.recv_into(b)
+  File "/usr/lib/python3.10/ssl.py", line 1303, in recv_into
+    return self.read(nbytes, buffer)
+  File "/usr/lib/python3.10/ssl.py", line 1159, in read
+    return self._sslobj.read(len, buffer)
+TimeoutError: The read operation timed out

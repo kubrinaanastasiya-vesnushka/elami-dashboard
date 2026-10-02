@@ -13,13 +13,16 @@ def api_get(path, params=""):
         "Accept": "application/vnd.yclients.v2+json",
         "Authorization": AUTH,
     })
-    for attempt in range(3):
+    for attempt in range(5):
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 return json.load(resp)
         except urllib.error.HTTPError as e:
             print("HTTP error", e.code, path, params)
-            time.sleep(1)
+            time.sleep(2)
+        except (TimeoutError, urllib.error.URLError, ConnectionError) as e:
+            print("network error", repr(e), path, params)
+            time.sleep(3)
     return {"success": False, "data": None}
 
 # --- static lookups ---

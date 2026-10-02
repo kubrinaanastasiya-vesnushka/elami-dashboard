@@ -806,12 +806,15 @@ for cid, recs in by_client.items():
         gap_days = (recs[i]["date"] - recs[i - 1]["date"]).days
         if gap_days >= RETURN_AFTER_BREAK_DAYS:
             ym = recs[i]["date"].strftime("%Y-%m")
+            _svc = recs[i]["services"]
             returned_after_break[ym].append({
                 "name": recs[i]["name"],
                 "phone": recs[i]["phone"],
                 "lastVisit": recs[i - 1]["date"].strftime("%Y-%m-%d"),
                 "returnVisit": recs[i]["date"].strftime("%Y-%m-%d"),
                 "gapDays": gap_days,
+                "services": ", ".join(s["title"] for s in _svc),
+                "check": round(sum(s["cost_to_pay"] for s in _svc)),
             })
 
 for ym in MONTHLY_DATA:
