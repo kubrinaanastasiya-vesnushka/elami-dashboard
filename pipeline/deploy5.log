@@ -75,3 +75,4 @@ embedded MONTHLY_DATA + GOODS_STOCK + INVENTORY_HISTORY into /root/agent-workspa
 [4/6] node --check — синтаксическая проверка встроенного JS
 [5/6] деплой на веб-сервер
 [6/6] git commit + push
+Готово. Дашборд обновлён: http://45.14.245.79:8080/
