@@ -163,6 +163,7 @@ for _phone, _credits in _cert_credits_by_phone.items():
         _credits_by_client[_cid].extend(_credits)
 
 _debits_by_client = defaultdict(list)  # cid -> [(date, record_id, service_idx, gap_amount), ...]
+_partial_debits_by_client = defaultdict(list)  # same shape, for partial-payment gaps (see ACCOUNT_WITHDRAWALS_CSV below)
 for _ym, _raw in MONTHLY_RAW.items():
     _recs = [r for r in _raw["records"] if not r.get("deleted") and r.get("attendance", 1) != -1]
     for _r in _recs:
@@ -186,6 +187,8 @@ for _ym, _raw in MONTHLY_RAW.items():
             # always a discount outright, never ledger-eligible.
             if _gap > 0 and _paid == 0:
                 _debits_by_client[_cid].append((_rdate, _r["id"], _si, _gap))
+            elif _gap > 0 and _paid > 0:
+                _partial_debits_by_client[_cid].append((_rdate, _r["id"], _si, _gap))
 
 # simulate a running balance per client, oldest-first, crediting top-ups/purchases and
 # debiting price gaps as they occur — whatever the balance can cover is "instrument-paid",
@@ -204,6 +207,53 @@ for _cid in set(list(_credits_by_client.keys()) + list(_debits_by_client.keys())
             if _covered > 0:
                 INSTRUMENT_COVERED[_key] = _covered
                 _balance -= _covered
+
+# ====================== account withdrawals -> partial-payment gaps (2026-10-05, Nastya's correction) ======================
+# Nastya pointed out: when she sends "Операции со счетам" exports (deposit top-ups/withdrawals),
+# the pipeline should actually CHECK them against partial-payment gaps too, not just rely on her
+# to manually confirm each case. Unlike the FIFO balance simulation above (which only applies to
+# fully-comped lines, see the Журавлева reasoning — a partial-payment gap could otherwise wrongly
+# eat an unrelated balance), a "Списание" row here is a DIRECTLY OBSERVED withdrawal event — not a
+# guess — so it's safe to match it straight to a same-day partial-payment gap for the same phone,
+# regardless of the paid>0 condition that normally excludes partial gaps.
+# File is optional (only exists for date ranges Nastya has actually sent) — matching silently
+# no-ops for clients/dates outside its coverage, same as the certificates CSV beforehand.
+ACCOUNT_WITHDRAWALS_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/schet_operations_20260901_20261004.csv"
+_withdrawals_by_phone_date = defaultdict(float)  # (phone, "YYYY-MM-DD") -> total withdrawn that day
+try:
+    with open(ACCOUNT_WITHDRAWALS_CSV, encoding="utf-8") as _f:
+        for _row in _csv.DictReader(_f):
+            if _row.get("Тип операции") != "Списание":
+                continue
+            _phone = (_row.get("Телефон владельца счета") or "").strip()
+            _amt_str = (_row.get("Сумма, ₽") or "").lstrip("'")
+            try:
+                _amt = abs(float(_amt_str))
+            except ValueError:
+                continue
+            _wdate = (_row.get("Дата операции") or "")[:10]
+            if _phone and _wdate:
+                _withdrawals_by_phone_date[(_phone, _wdate)] += _amt
+except FileNotFoundError:
+    pass
+
+_phone_by_cid = {v: k for k, v in _phone_to_cid.items()}
+for _cid, _partials in _partial_debits_by_client.items():
+    _phone = _phone_by_cid.get(_cid)
+    if not _phone:
+        continue
+    _by_date = defaultdict(list)
+    for _d, _rid, _si, _amt in _partials:
+        _by_date[_d.strftime("%Y-%m-%d")].append((_rid, _si, _amt))
+    for _wdate, _lines in _by_date.items():
+        _remaining = _withdrawals_by_phone_date.get((_phone, _wdate), 0.0)
+        if _remaining <= 0:
+            continue
+        for _rid, _si, _amt in _lines:
+            _covered = min(_remaining, _amt)
+            if _covered > 0:
+                INSTRUMENT_COVERED[(_rid, _si)] = _covered
+                _remaining -= _covered
 
 # Manual overrides (Nastya, 2026-08-10): confirmed by her personally checking these July
 # visits against certificate/deposit records in YClients — a mix of cash + instrument
