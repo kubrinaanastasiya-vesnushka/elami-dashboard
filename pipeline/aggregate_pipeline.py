@@ -112,6 +112,12 @@ for _ym, _raw in MONTHLY_RAW.items():
 CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20260101_20261004.csv"
 import csv as _csv
 _cert_credits_by_phone = defaultdict(list)  # phone -> [(sale_date, nominal), ...]
+# Redemption events (Дата списания + Сумма списания) — a certificate can be redeemed across
+# several visits/lines, each its own row (continuation rows: Код blank, only the last 3 columns
+# filled). Nastya caught (2026-10-05, Рямова Лиля case) that these were parsed but never summed
+# or matched to a specific client/date — kept here now so partial-payment gaps can be matched
+# directly to a real redemption event below, same approach as ACCOUNT_WITHDRAWALS_CSV.
+_cert_redemptions_by_phone_date = defaultdict(float)  # (phone, "YYYY-MM-DD") -> total redeemed that day
 with open(CERTIFICATES_CSV, encoding="utf-8") as _f:
     _cert_rows = list(_csv.reader(_f))
 _cur_phone, _cur_sale_date, _cur_nominal = None, None, None
@@ -122,9 +128,12 @@ for _row in _cert_rows[1:]:
         _cur_nominal = float(_row[3]) if _row[3] else 0.0
         if _cur_phone and _cur_sale_date:
             _cert_credits_by_phone[_cur_phone].append((datetime.strptime(_cur_sale_date, "%d.%m.%Y"), _cur_nominal))
-    # redemption columns (Дата списания/Сумма списания) are informational only here — the
-    # ledger simulation below re-derives redemption amounts from each client's own service
-    # gaps, so only the credit (nominal, at sale date) needs importing from this report.
+    if _cur_phone and len(_row) >= 12 and _row[9].strip() and _row[11].strip():
+        try:
+            _redeem_dt = datetime.strptime(_row[9].strip(), "%d.%m.%Y").strftime("%Y-%m-%d")
+            _cert_redemptions_by_phone_date[(_cur_phone, _redeem_dt)] += float(_row[11])
+        except ValueError:
+            pass
 
 _phone_to_cid = {}
 for _ym, _raw in MONTHLY_RAW.items():
@@ -186,17 +195,24 @@ for _ym, _raw in MONTHLY_RAW.items():
             # should rightfully still have. Partial-payment gaps (0 < paid < first) are
             # always a discount outright, never ledger-eligible.
             if _gap > 0 and _paid == 0:
-                _debits_by_client[_cid].append((_rdate, _r["id"], _si, _gap))
+                _debits_by_client[_cid].append((_rdate, ("svc", _r["id"], _si), _gap))
             elif _gap > 0 and _paid > 0:
-                _partial_debits_by_client[_cid].append((_rdate, _r["id"], _si, _gap))
+                _partial_debits_by_client[_cid].append((_rdate, ("svc", _r["id"], _si), _gap))
+        for _g in _r.get("goods_transactions", []):
+            if _g.get("loyalty_abonement_id") or _g.get("loyalty_certificate_id"):
+                continue
+            _g_gap = (_g.get("price", 0) or 0) - (_g.get("cost_to_pay", 0) or 0)
+            if _g_gap > 0:
+                _partial_debits_by_client[_cid].append((_rdate, ("goods", _g.get("id")), _g_gap))
 
 # simulate a running balance per client, oldest-first, crediting top-ups/purchases and
 # debiting price gaps as they occur — whatever the balance can cover is "instrument-paid",
 # the rest (if any) is a genuine discount
-INSTRUMENT_COVERED = {}  # (record_id, service_idx) -> amount covered by instrument balance
+INSTRUMENT_COVERED = {}  # ("svc", record_id, service_idx) -> amount covered by instrument balance
+GOODS_INSTRUMENT_COVERED = {}  # goods_transaction id -> amount covered by instrument balance (auto)
 for _cid in set(list(_credits_by_client.keys()) + list(_debits_by_client.keys())):
     _timeline = [(d, "credit", amt, None) for d, amt in _credits_by_client.get(_cid, [])]
-    _timeline += [(d, "debit", amt, key) for d, rid, si, amt in _debits_by_client.get(_cid, []) for key in [(rid, si)]]
+    _timeline += [(d, "debit", amt, key) for d, key, amt in _debits_by_client.get(_cid, [])]
     _timeline.sort(key=lambda x: x[0])
     _balance = 0.0
     for _d, _kind, _amt, _key in _timeline:
@@ -237,22 +253,36 @@ try:
 except FileNotFoundError:
     pass
 
+# Certificate redemptions (parsed above into _cert_redemptions_by_phone_date) are the same
+# kind of directly-observed event as an account withdrawal — merge both into one same-day
+# pool per (phone, date) rather than matching them separately, since a single visit can be
+# split across a deposit write-off AND a certificate (exactly what happened for Рямова Лиля,
+# 29.09: 3680₽ deposit + 2000₽ certificate covering 3 separate gap lines that day).
+_events_by_phone_date = defaultdict(float)
+for _k, _v in _withdrawals_by_phone_date.items():
+    _events_by_phone_date[_k] += _v
+for _k, _v in _cert_redemptions_by_phone_date.items():
+    _events_by_phone_date[_k] += _v
+
 _phone_by_cid = {v: k for k, v in _phone_to_cid.items()}
 for _cid, _partials in _partial_debits_by_client.items():
     _phone = _phone_by_cid.get(_cid)
     if not _phone:
         continue
     _by_date = defaultdict(list)
-    for _d, _rid, _si, _amt in _partials:
-        _by_date[_d.strftime("%Y-%m-%d")].append((_rid, _si, _amt))
+    for _d, _key, _amt in _partials:
+        _by_date[_d.strftime("%Y-%m-%d")].append((_key, _amt))
     for _wdate, _lines in _by_date.items():
-        _remaining = _withdrawals_by_phone_date.get((_phone, _wdate), 0.0)
+        _remaining = _events_by_phone_date.get((_phone, _wdate), 0.0)
         if _remaining <= 0:
             continue
-        for _rid, _si, _amt in _lines:
+        for _key, _amt in _lines:
             _covered = min(_remaining, _amt)
             if _covered > 0:
-                INSTRUMENT_COVERED[(_rid, _si)] = _covered
+                if _key[0] == "svc":
+                    INSTRUMENT_COVERED[_key] = _covered
+                else:
+                    GOODS_INSTRUMENT_COVERED[_key[1]] = _covered
                 _remaining -= _covered
 
 # Manual overrides (Nastya, 2026-08-10): confirmed by her personally checking these July
@@ -342,7 +372,7 @@ for (_mrid, _mtitle), _mamt in INSTRUMENT_COVERED_MANUAL_BY_TITLE.items():
         if _ms.get("title") == _mtitle:
             INSTRUMENT_COVERED_MANUAL[(_mrid, _msi)] = _mamt
             break
-INSTRUMENT_COVERED.update(INSTRUMENT_COVERED_MANUAL)
+INSTRUMENT_COVERED.update({("svc", rid, si): amt for (rid, si), amt in INSTRUMENT_COVERED_MANUAL.items()})
 
 def classify_source(rec):
     if rec.get("from_url"):
@@ -535,7 +565,7 @@ def month_metrics(ym):
             # its gap as a discount would be premature. Scoped to discount accounting only —
             # revenue/visits/specialists etc. above keep their existing broader definitions.
             if gap > 0 and r.get("attendance") == 1:
-                covered = INSTRUMENT_COVERED.get((r["id"], _si), 0)
+                covered = INSTRUMENT_COVERED.get(("svc", r["id"], _si), 0)
                 disc_amt = gap - covered
                 if disc_amt > 0:
                     discount_total += disc_amt
@@ -566,6 +596,7 @@ def month_metrics(ym):
             if r.get("attendance") == 1 and not g.get("loyalty_abonement_id") and not g.get("loyalty_certificate_id") and g.get("id") not in GOODS_DISCOUNT_DATA_ERROR_EXCLUDE:
                 g_gap = (g.get("price", 0) or 0) - (g.get("cost_to_pay", 0) or 0)
                 g_gap -= GOODS_INSTRUMENT_COVERED_MANUAL.get(g.get("id"), 0)
+                g_gap -= GOODS_INSTRUMENT_COVERED.get(g.get("id"), 0)
                 if g_gap > 0:
                     discount_total += g_gap
                     labels = r.get("record_labels") or []
