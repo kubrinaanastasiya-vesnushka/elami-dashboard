@@ -109,7 +109,7 @@ for _ym, _raw in MONTHLY_RAW.items():
 # (date + amount — a single certificate can be split across many redemptions). Matched into
 # the ledger via phone number (reliable, present on both sides) rather than name (found
 # comment/name text to be unreliable elsewhere in this project already).
-CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20250101_20260922.csv"
+CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20260101_20261004.csv"
 import csv as _csv
 _cert_credits_by_phone = defaultdict(list)  # phone -> [(sale_date, nominal), ...]
 with open(CERTIFICATES_CSV, encoding="utf-8") as _f:
