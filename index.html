@@ -1308,14 +1308,6 @@ function renderCategoriesAndTops() {
   renderCategoriesView();
   renderTopsView();
 }
-function showCatSub(sub) {
-  document.querySelectorAll('.cat-sub').forEach(el => {
-    el.style.display = el.dataset.sub === sub ? '' : 'none';
-  });
-  document.querySelectorAll('.cat-sub-nav').forEach(el => {
-    el.classList.toggle('active', el.dataset.sub === sub);
-  });
-}
 document.getElementById('categoriesNavHeader').addEventListener('click', () => {
   const sub = document.getElementById('categoriesSubNav');
   const open = sub.style.display === 'flex';
@@ -1326,7 +1318,9 @@ document.querySelectorAll('.cat-sub-nav').forEach(el => {
   el.addEventListener('click', (e) => {
     e.stopPropagation();
     activateView('categories', null);
-    showCatSub(el.dataset.sub);
+    document.querySelectorAll('.cat-sub-nav').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelector(`.cat-sub[data-sub="${el.dataset.sub}"]`).scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 function renderInventoryHistory() {
