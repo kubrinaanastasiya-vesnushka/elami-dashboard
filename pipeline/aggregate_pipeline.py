@@ -37,6 +37,7 @@ MANUAL_STAFF_BY_DOCUMENT = {
     # начисление по этому документу подтверждает продажу её.
     "2226142677": "Татьяна Колегова",  # Екатерина, 05.09, товары без привязки к визиту
     "2257957128": "Татьяна Колегова",  # Сокольникова Альбина, 19.09, абонемент "Пакет Стандарт 5 процедур" без привязки к визиту
+    "2225336790": "Влада Щукина",  # Астахова Роза, 05.09, абонемент "Массаж антицеллюлитный 40мин 10 сеансов" без привязки к визиту — подтверждено Владиной ЗП-выгрузкой
 }
 # "Сумма оказанных услуг" по начислению (2026-10-07, Настина ЗП-сверка): YClients считает
 # комиссию мастера от ВНУТРЕННЕЙ цены сеанса в абонементе/сертификате, а не от каталожной
@@ -622,7 +623,12 @@ def month_metrics(ym):
             _g_qty = abs(g.get("amount", 0) or 0)
             _g_rev = g.get("cost_to_pay", 0) or 0
             if g.get("loyalty_abonement_id"):
-                spec_subs_revenue[_g_seller] += _g_rev
+                # 2026-10-07: use "price" (package value), not "cost_to_pay" — found via
+                # Владина ЗП-выгрузка that a package bought same-visit off an existing deposit
+                # shows cost_to_pay=0 (balance covered it) but YClients still commissions the
+                # mastер on the full package price (confirmed: Худякова Мария, 15.09, price
+                # 11250 vs cost_to_pay 0 — payroll showed 11250).
+                spec_subs_revenue[_g_seller] += g.get("price", 0) or 0
                 spec_subs_qty[_g_seller] += _g_qty
             else:
                 spec_goods_revenue[_g_seller] += _g_rev
