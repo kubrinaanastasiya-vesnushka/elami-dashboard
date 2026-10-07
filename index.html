@@ -1431,14 +1431,16 @@ function renderMastersSummaryTable() {
   }
   const totals = specialists.reduce((a, s) => ({
     visits: a.visits + s.visits,
+    serviceCount: a.serviceCount + (s.serviceCount || 0),
     revenue: a.revenue + s.revenue,
     goodsRevenue: a.goodsRevenue + s.goodsRevenue,
     totalRevenue: a.totalRevenue + s.totalRevenue,
-  }), { visits: 0, revenue: 0, goodsRevenue: 0, totalRevenue: 0 });
+  }), { visits: 0, serviceCount: 0, revenue: 0, goodsRevenue: 0, totalRevenue: 0 });
   const rows = specialists.map(s => `
     <tr>
       <td style="padding:7px 10px; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap; ${CMP_STICKY}">${s.name}</td>
       <td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap;">${fmtNum(s.visits)}</td>
+      <td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap;">${fmtNum(s.serviceCount || 0)}</td>
       <td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap;">${fmtRub(s.revenue)}</td>
       <td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap;">${fmtRub(s.goodsRevenue)}</td>
       <td style="text-align:right; padding:7px 10px; border-bottom:1px solid var(--border); white-space:nowrap;">${fmtRub(s.avgCheckMaster)}</td>
@@ -1448,6 +1450,7 @@ function renderMastersSummaryTable() {
     <tr style="background: var(--bg-accent);">
       <td style="padding:8px 10px; font-weight:600; white-space:nowrap; ${CMP_STICKY} background: var(--bg-accent);">Итого</td>
       <td style="text-align:right; padding:8px 10px; font-weight:600; white-space:nowrap;">${fmtNum(totals.visits)}</td>
+      <td style="text-align:right; padding:8px 10px; font-weight:600; white-space:nowrap;">${fmtNum(totals.serviceCount)}</td>
       <td style="text-align:right; padding:8px 10px; font-weight:600; white-space:nowrap;">${fmtRub(totals.revenue)}</td>
       <td style="text-align:right; padding:8px 10px; font-weight:600; white-space:nowrap;">${fmtRub(totals.goodsRevenue)}</td>
       <td style="text-align:right; padding:8px 10px; font-weight:600; white-space:nowrap;">${fmtRub(totals.visits ? totals.totalRevenue/totals.visits : 0)}</td>
@@ -1457,6 +1460,7 @@ function renderMastersSummaryTable() {
     <thead><tr>
       <th style="text-align:left; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border); ${CMP_STICKY}">Мастер</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Визиты</th>
+      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Услуг</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Сумма услуг</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Продажи косметики</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Средний чек</th>
