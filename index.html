@@ -628,6 +628,10 @@ function populateMonthSelect() {
       renderMastersView();
       document.getElementById('pageSub').textContent = viewTitles.masters[1];
     }
+    if (currentView === 'goals') {
+      renderGoalsView();
+      document.getElementById('pageSub').textContent = viewTitles.goals[1] + monthLabel(currentMonth);
+    }
   });
 }
 
@@ -1696,6 +1700,7 @@ const GOALS_FACT_MANUAL = {
 };
 
 function renderGoalsView() {
+  renderPlanFact(currentMonth);
   const cur = MONTHLY_DATA[currentMonth];
   const totalClients = cur.newClients + cur.repeatClients;
   const repeatPct = totalClients ? Math.round(cur.repeatClients / totalClients * 100 * 10) / 10 : 0;
@@ -1756,8 +1761,8 @@ function activateView(view, navEl) {
   document.getElementById('pageTitle').textContent = viewTitles[view][0];
   document.getElementById('pageSub').textContent = view === 'overview'
     ? 'Данные напрямую из API YClients (records + transactions)'
-    : viewTitles[view][1] + (view!=='clientdays' && view!=='discounts' && view!=='categories' && view!=='goods' && view!=='clients' && view!=='masters' && view!=='goals' ? monthLabel(currentMonth) : '');
-  document.getElementById('periodToggle').style.display = (view === 'overview' || view === 'discounts' || view === 'categories' || view === 'goods' || view === 'clients' || view === 'masters') ? 'flex' : 'none';
+    : viewTitles[view][1] + (view!=='clientdays' && view!=='discounts' && view!=='categories' && view!=='goods' && view!=='clients' && view!=='masters' ? monthLabel(currentMonth) : '');
+  document.getElementById('periodToggle').style.display = (view === 'overview' || view === 'discounts' || view === 'categories' || view === 'goods' || view === 'clients' || view === 'masters' || view === 'goals') ? 'flex' : 'none';
   if (viewRenderers[view]) viewRenderers[view]();
 }
 document.querySelectorAll('.navitem[data-view]').forEach(item => {
