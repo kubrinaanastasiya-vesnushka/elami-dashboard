@@ -569,6 +569,11 @@ def month_metrics(ym):
             spec_service_count[staff_name] += 1
             cat_id = SERVICE_CAT.get(s["id"])
             cat_name = CAT_TITLE.get(cat_id, "Без категории")
+            # Настя (2026-10-07): категория YClients называется "Обучение", но по факту там
+            # всегда услуга "Модель" (клиенты-модели на отработке, по сниженной цене) —
+            # показываем на дашборде под понятным названием.
+            if cat_name == "Обучение":
+                cat_name = "Модель"
             _is_set_fresh_line = (r["id"], _si) in set_fresh_keys
             if _is_set_fresh_line:
                 cat_name = "Сеты"
