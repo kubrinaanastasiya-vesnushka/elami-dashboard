@@ -774,7 +774,12 @@ function showCategoryDetail(c) {
 
 /* ====================== render: specialists ====================== */
 function renderSpecialists(ym) {
-  const specialists = MONTHLY_DATA[ym].specialists;
+  // Полная выручка (услуги+товары+абонементы+депозиты), та же база, что в "Динамике выручки"
+  // и в карточке "Выручка за месяц" наверху — раньше тут был s.revenue (только услуги), из-за
+  // чего сумма по Эльвире расходилась с графиком (Настя заметила 2026-10-07). "Неизвестно"
+  // (розница без привязки к визиту) сюда не включаем — это не специалист, ему тут не место;
+  // подробная разбивка (услуги/касса/начисление/косметика/абонементы) — на странице Мастера.
+  const specialists = MONTHLY_DATA[ym].specialists.filter(s => s.name !== 'Неизвестно');
   const revenue = MONTHLY_DATA[ym].revenue;
   const el = document.getElementById('specialistBars');
   el.innerHTML = '';
@@ -782,20 +787,20 @@ function renderSpecialists(ym) {
     el.innerHTML = `<div class="empty-note">Нет данных по специалистам за этот месяц.</div>`;
     return;
   }
-  const maxRev = Math.max(...specialists.map(s=>s.revenue));
+  const maxRev = Math.max(...specialists.map(s=>s.totalRevenue));
   specialists.forEach(s => {
-    const pct = Math.round((s.revenue / maxRev) * 100);
+    const pct = Math.round((s.totalRevenue / maxRev) * 100);
     const block = document.createElement('div');
     block.className = 'bar-block';
     block.innerHTML = `
-      <div class="row"><span>${s.name}</span><span><b>${fmtRub(s.revenue)}</b> <span style="color:var(--text-muted);">· чек ${fmtRub(s.avgCheck)}</span></span></div>
+      <div class="row"><span>${s.name}</span><span><b>${fmtRub(s.totalRevenue)}</b> <span style="color:var(--text-muted);">· чек ${fmtRub(s.avgCheckMaster)}</span></span></div>
       <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:#1baf7a;"></div></div>
     `;
     block.onclick = () => openDetail(s.name, 'специалист · ' + monthLabel(ym), `
-      <div class="detail-row"><span>Выручка за месяц</span><span><b>${fmtRub(s.revenue)}</b></span></div>
+      <div class="detail-row"><span>Выручка за месяц</span><span><b>${fmtRub(s.totalRevenue)}</b></span></div>
       <div class="detail-row"><span>Визитов</span><span><b>${fmtNum(s.visits)}</b></span></div>
-      <div class="detail-row"><span>Средний чек</span><span><b>${fmtRub(s.avgCheck)}</b></span></div>
-      <div class="detail-row"><span>Доля от общей выручки</span><span><b>${Math.round(s.revenue/revenue*100)}%</b></span></div>
+      <div class="detail-row"><span>Средний чек</span><span><b>${fmtRub(s.avgCheckMaster)}</b></span></div>
+      <div class="detail-row"><span>Доля от общей выручки</span><span><b>${s.revenueSharePct}%</b></span></div>
     `);
     el.appendChild(block);
   });
