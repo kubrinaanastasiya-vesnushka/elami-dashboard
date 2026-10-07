@@ -14,6 +14,10 @@ REVENUE_EXPENSE_TYPES = {"Оказание услуг", "Продажа това
 # (раньше дублировался в summarize_changes.py — теперь тот читает это же поле из MONTHLY_DATA).
 REVENUE_PLAN = {
     "2026-09": {"elvira": 1300000, "others": 1000000},
+    "2026-10": {"elvira": 1300000, "others": 1000000},  # Настя (2026-10-07): "тоже самое, что сентябрь"
+}
+NEW_CLIENTS_PLAN = {
+    "2026-10": 60,  # Настя (2026-10-07)
 }
 # Manual per-master attribution for record-less transactions (2026-09-28) — retail sales/
 # deposit top-ups with no booking (record_id=0) have NO staff signal anywhere in the partner
@@ -865,6 +869,7 @@ def month_metrics(ym):
         "discountByLabel": [{"name": k, "amount": round(v)} for k, v in sorted(discount_by_label.items(), key=lambda x: -x[1])],
         "revenueByMaster": revenue_by_master,
         "revenuePlan": REVENUE_PLAN.get(ym),
+        "newClientsPlan": NEW_CLIENTS_PLAN.get(ym),
     }
 
 MONTHLY_DATA = {ym: month_metrics(ym) for ym in MONTHLY_RAW}
