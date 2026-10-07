@@ -46,6 +46,17 @@ MANUAL_STAFF_BY_DOCUMENT = {
 SPECIALIST_ACCRUAL_MANUAL = {
     "2026-09": {
         "Татьяна Колегова": 243294,  # выгрузка "Расчет_зарплаты_Татьяна_Колегова_01_09_2026_30_09_2026.xls"
+        "Анжела Петросян": 234370,  # выгрузка "Расчет_зарплаты_Анжела_Петросян_01_09_2026_30_09_2026.xls"
+    },
+}
+# Отзывы (2026-10-07, Настя продиктовала текстом — в YClients API отзывов нет вообще):
+# {"YYYY-MM": {"Имя мастера": {"2ГИС": N, "Яндекс": N}}}. "Клиника" — общий итог, не привязан
+# к мастеру (21+7 за сентябрь, из них по мастерам ниже расписано только частично).
+REVIEWS_MANUAL = {
+    "2026-09": {
+        "Анжела Петросян": {"2ГИС": 5, "Яндекс": 2},
+        "Татьяна Колегова": {"2ГИС": 4, "Яндекс": 1},
+        "Влада Щукина": {"2ГИС": 3, "Яндекс": 0},
     },
 }
 CAT_COLORS = ['#97C459', '#5DCAA5', '#EDA100', '#888780', '#6B8FCE', '#C77DBB']
@@ -515,6 +526,7 @@ def month_metrics(ym):
     spec_goods_qty = defaultdict(float)  # staff_name -> кол-во проданных единиц косметики (retail only, excludes abonement/cert products)
     spec_subs_revenue = defaultdict(float)  # staff_name -> сумма проданных абонементов
     spec_subs_qty = defaultdict(float)  # staff_name -> кол-во проданных абонементов
+    spec_blogger_clients = defaultdict(set)  # staff_name -> {client_id} с меткой записи "Блогер"
     goods_seen = {}  # dedup by goods_transactions line id — a shared visit can repeat a line across staff records
 
     for r in records:
@@ -541,6 +553,8 @@ def month_metrics(ym):
                     referral_tags_by_client[cid] = tags
                 spec_seen = spec_clients_seen[staff_name]
                 spec_seen[cid] = spec_seen.get(cid, False) or bool(client.get("is_new"))
+                if any(l["title"] == "Блогер" for l in (r.get("record_labels") or [])):
+                    spec_blogger_clients[staff_name].add(cid)
 
         for _si, s in enumerate(r.get("services", [])):
             paid = s.get("cost_to_pay", 0) or 0
@@ -752,6 +766,8 @@ def month_metrics(ym):
           "subsRevenue": round(spec_subs_revenue.get(n, 0)),
           "subsQty": round(spec_subs_qty.get(n, 0)),
           "accrualRevenue": SPECIALIST_ACCRUAL_MANUAL.get(ym, {}).get(n),
+          "bloggerClients": len(spec_blogger_clients.get(n, ())),
+          "reviews": REVIEWS_MANUAL.get(ym, {}).get(n),
           "totalRevenue": round(revenue_by_master_all.get(n, 0)),
           "avgCheckMaster": round(revenue_by_master_all.get(n, 0)/len(spec_visits[n])) if spec_visits[n] else 0,
           "revenueSharePct": round(revenue_by_master_all.get(n, 0)/revenue*100, 1) if revenue else 0}
