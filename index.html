@@ -1481,7 +1481,7 @@ function renderMastersSummaryTable() {
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Услуг</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Визиты</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Сумма услуг (начисление)</th>
-      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Сумма в кассе</th>
+      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Сумма услуг в кассе</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Средний чек (начисление)</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Доля в выручке (касса)</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Продажа косметики</th>
@@ -1491,7 +1491,7 @@ function renderMastersSummaryTable() {
     </tr></thead>
     <tbody>${rows}${totalRow}</tbody>`;
   const note = document.getElementById('mastersSummaryNote');
-  if (note) note.textContent = '«Сумма услуг (начисление)» и «Средний чек (начисление)» заполняются вручную из выгрузки «Расчёт зарплаты» по каждому мастеру — пока выгрузки нет, стоит «—». «Сумма в кассе» и «Доля в выручке» считаются автоматически из YClients (кассовый метод).';
+  if (note) note.textContent = '«Сумма услуг (начисление)» и «Средний чек (начисление)» заполняются вручную из выгрузки «Расчёт зарплаты» по каждому мастеру — пока выгрузки нет, стоит «—». «Сумма услуг в кассе» — это только услуги (без косметики/абонементов, они отдельными столбцами справа); «Доля в выручке» считается от полной суммы (услуги+косметика+абонементы+депозиты) — именно она совпадает с цифрой в Обзоре.';
 }
 function renderMastersView() {
   renderMastersSummaryTable();
