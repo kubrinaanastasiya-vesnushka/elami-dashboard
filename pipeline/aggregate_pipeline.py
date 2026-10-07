@@ -783,6 +783,20 @@ def month_metrics(ym):
          for n, v in spec_revenue.items()],
         key=lambda x: -x["revenue"]
     )
+    # "Неизвестно" (2026-10-07, Настин запрос): розничные продажи/пополнения без привязки
+    # к визиту — у API физически нет продавца, пока Настя не подтвердит вручную (см.
+    # MANUAL_STAFF_BY_DOCUMENT). Показываем отдельной строкой, чтобы «Доля в выручке»
+    # в сумме давала 100%, а не терялась молча.
+    _unattributed = round(revenue_by_master_all.get("—", 0))
+    if _unattributed > 0:
+        specialists.append({
+            "name": "Неизвестно", "revenue": None, "avgCheck": None, "visits": None,
+            "serviceCount": None, "avgCheckPerService": None, "newClients": None, "repeatClients": None,
+            "goodsRevenue": 0, "goodsQty": 0, "subsRevenue": 0, "subsQty": 0,
+            "accrualRevenue": None, "bloggerClients": None, "reviews": None,
+            "totalRevenue": _unattributed, "avgCheckMaster": None,
+            "revenueSharePct": round(_unattributed/revenue*100, 1) if revenue else 0,
+        })
 
     top_services = sorted(service_revenue.items(), key=lambda x: -x[1])[:5]
     top_services = [{"name": n, "revenue": round(v)} for n, v in top_services]
