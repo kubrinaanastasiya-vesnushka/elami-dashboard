@@ -623,7 +623,7 @@ def month_metrics(ym):
             gid = g.get("id")
             if gid is None or gid in goods_seen:
                 continue
-            goods_seen[gid] = {"name": g.get("title", "—"), "revenue": g.get("cost_to_pay", 0) or 0, "qty": abs(g.get("amount", 0) or 0)}
+            goods_seen[gid] = {"name": g.get("title", "—"), "revenue": g.get("cost_to_pay", 0) or 0, "qty": abs(g.get("amount", 0) or 0), "is_abonement": bool(g.get("loyalty_abonement_id"))}
             # 2026-09-19: attribute to the actual seller (goods_transactions' own master_id),
             # not the visit's booking staff — same fix as revenue_by_master_all above.
             _g_seller = goods_seller_by_sold_item.get(gid) or staff_name
@@ -671,8 +671,12 @@ def month_metrics(ym):
     for t in transactions:
         title = (t.get("expense") or {}).get("title")
         if title == "Продажа товаров":
-            good_name = goods_seen.get(t.get("sold_item_id"), {}).get("name")
-            key = "subscriptions" if good_name in RECLASSIFY_GOODS_AS_SUBSCRIPTION else "goods"
+            _sold = goods_seen.get(t.get("sold_item_id"), {})
+            # 2026-10-07: reclassify by loyalty_abonement_id (robust, catches ANY package
+            # name), not just the hardcoded RECLASSIFY_GOODS_AS_SUBSCRIPTION whitelist — found
+            # via Настя that "Глубокий пилинг MeLine 5 процедур" and "Ручной массаж ... 5
+            # процедур" were leaking into Товары (они абонементы, не косметика).
+            key = "subscriptions" if (_sold.get("is_abonement") or _sold.get("name") in RECLASSIFY_GOODS_AS_SUBSCRIPTION) else "goods"
         else:
             key = TYPE_MAP.get(title)
         if key:
@@ -681,7 +685,7 @@ def month_metrics(ym):
 
     goods_agg = defaultdict(lambda: {"revenue": 0.0, "qty": 0})
     for g in goods_seen.values():
-        if g["name"] in RECLASSIFY_GOODS_AS_SUBSCRIPTION:
+        if g.get("is_abonement") or g["name"] in RECLASSIFY_GOODS_AS_SUBSCRIPTION:
             continue
         goods_agg[g["name"]]["revenue"] += g["revenue"]
         goods_agg[g["name"]]["qty"] += g["qty"]
