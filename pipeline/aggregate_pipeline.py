@@ -36,6 +36,17 @@ MANUAL_STAFF_BY_DOCUMENT = {
     # внутренне знает продавца даже для розницы без записи (наш partner API — нет), её
     # начисление по этому документу подтверждает продажу её.
     "2226142677": "Татьяна Колегова",  # Екатерина, 05.09, товары без привязки к визиту
+    "2257957128": "Татьяна Колегова",  # Сокольникова Альбина, 19.09, абонемент "Пакет Стандарт 5 процедур" без привязки к визиту
+}
+# "Сумма оказанных услуг" по начислению (2026-10-07, Настина ЗП-сверка): YClients считает
+# комиссию мастера от ВНУТРЕННЕЙ цены сеанса в абонементе/сертификате, а не от каталожной
+# first_cost — этой цифры нет в partner API вообще, видна только в самой выгрузке "Расчёт
+# зарплаты". Поэтому не вычисляется, а вводится вручную по каждой выгрузке, которую
+# присылает Настя: {"YYYY-MM": {"Имя мастера": сумма_по_начислению}}.
+SPECIALIST_ACCRUAL_MANUAL = {
+    "2026-09": {
+        "Татьяна Колегова": 243294,  # выгрузка "Расчет_зарплаты_Татьяна_Колегова_01_09_2026_30_09_2026.xls"
+    },
 }
 CAT_COLORS = ['#97C459', '#5DCAA5', '#EDA100', '#888780', '#6B8FCE', '#C77DBB']
 # same TYPE_MAP convention as client_days_pipeline.py — transactions-based sum+count,
@@ -501,6 +512,9 @@ def month_metrics(ym):
     spec_clients_seen = defaultdict(dict)  # staff_name -> {client_id: is_new_bool}
     spec_goods_revenue = defaultdict(float)  # staff_name -> "Сумма товаров" (2026-09-04, Nastya's Мастера table request)
     spec_service_count = defaultdict(int)  # staff_name -> count of service LINES (not distinct visits) — 2026-10-07, ЗП-сверка
+    spec_goods_qty = defaultdict(float)  # staff_name -> кол-во проданных единиц косметики (retail only, excludes abonement/cert products)
+    spec_subs_revenue = defaultdict(float)  # staff_name -> сумма проданных абонементов
+    spec_subs_qty = defaultdict(float)  # staff_name -> кол-во проданных абонементов
     goods_seen = {}  # dedup by goods_transactions line id — a shared visit can repeat a line across staff records
 
     for r in records:
@@ -589,7 +603,16 @@ def month_metrics(ym):
             goods_seen[gid] = {"name": g.get("title", "—"), "revenue": g.get("cost_to_pay", 0) or 0, "qty": abs(g.get("amount", 0) or 0)}
             # 2026-09-19: attribute to the actual seller (goods_transactions' own master_id),
             # not the visit's booking staff — same fix as revenue_by_master_all above.
-            spec_goods_revenue[goods_seller_by_sold_item.get(gid) or staff_name] += g.get("cost_to_pay", 0) or 0
+            _g_seller = goods_seller_by_sold_item.get(gid) or staff_name
+            _g_qty = abs(g.get("amount", 0) or 0)
+            _g_rev = g.get("cost_to_pay", 0) or 0
+            if g.get("loyalty_abonement_id"):
+                spec_subs_revenue[_g_seller] += _g_rev
+                spec_subs_qty[_g_seller] += _g_qty
+            else:
+                spec_goods_revenue[_g_seller] += _g_rev
+                if not g.get("loyalty_certificate_id"):
+                    spec_goods_qty[_g_seller] += _g_qty
 
             # Nastya (2026-09-14, rule 2): discounts also apply to goods sales, not just
             # services. Scoped to genuine retail cosmetics only — a goods_transactions line
@@ -705,11 +728,18 @@ def month_metrics(ym):
     # them even though revenue_by_master_all (via _tx_staff) already counts them — patch here
     # for consistency between the "Мастера" table's Продажи косметики column and its total.
     for _t in transactions:
-        if (_t.get("expense") or {}).get("title") != "Продажа товаров":
+        _t_title = (_t.get("expense") or {}).get("title")
+        if _t_title not in ("Продажа товаров", "Продажа абонементов"):
             continue
         _manual_staff = MANUAL_STAFF_BY_DOCUMENT.get(str(_t.get("document_id")))
-        if _manual_staff and not _t.get("record_id"):
+        if not _manual_staff or _t.get("record_id"):
+            continue
+        if _t_title == "Продажа товаров":
             spec_goods_revenue[_manual_staff] += _t["amount"]
+            spec_goods_qty[_manual_staff] += 1
+        else:
+            spec_subs_revenue[_manual_staff] += _t["amount"]
+            spec_subs_qty[_manual_staff] += 1
 
     specialists = sorted(
         [{"name": n, "revenue": round(v), "avgCheck": round(v/len(spec_visits[n])) if spec_visits[n] else 0, "visits": len(spec_visits[n]),
@@ -718,6 +748,10 @@ def month_metrics(ym):
           "newClients": sum(1 for is_new in spec_clients_seen[n].values() if is_new),
           "repeatClients": sum(1 for is_new in spec_clients_seen[n].values() if not is_new),
           "goodsRevenue": round(spec_goods_revenue.get(n, 0)),
+          "goodsQty": round(spec_goods_qty.get(n, 0)),
+          "subsRevenue": round(spec_subs_revenue.get(n, 0)),
+          "subsQty": round(spec_subs_qty.get(n, 0)),
+          "accrualRevenue": SPECIALIST_ACCRUAL_MANUAL.get(ym, {}).get(n),
           "totalRevenue": round(revenue_by_master_all.get(n, 0)),
           "avgCheckMaster": round(revenue_by_master_all.get(n, 0)/len(spec_visits[n])) if spec_visits[n] else 0,
           "revenueSharePct": round(revenue_by_master_all.get(n, 0)/revenue*100, 1) if revenue else 0}
