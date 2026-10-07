@@ -32,6 +32,10 @@ MANUAL_STAFF_BY_DOCUMENT = {
     "2232998868": "Эльвира Аминева",  # Диана, 08.09, товары
     "2272051704": "Эльвира Аминева",  # Алёна, 25.09, товары
     "2246261319": "Эльвира Аминева",  # Валентина Плющь СММ, 14.09, товары
+    # 2026-10-07: подтверждено выгрузкой "Расчёт зарплаты" Татьяны Колеговой — YClients
+    # внутренне знает продавца даже для розницы без записи (наш partner API — нет), её
+    # начисление по этому документу подтверждает продажу её.
+    "2226142677": "Татьяна Колегова",  # Екатерина, 05.09, товары без привязки к визиту
 }
 CAT_COLORS = ['#97C459', '#5DCAA5', '#EDA100', '#888780', '#6B8FCE', '#C77DBB']
 # same TYPE_MAP convention as client_days_pipeline.py — transactions-based sum+count,
@@ -496,6 +500,7 @@ def month_metrics(ym):
     referral_tags_by_client = {}
     spec_clients_seen = defaultdict(dict)  # staff_name -> {client_id: is_new_bool}
     spec_goods_revenue = defaultdict(float)  # staff_name -> "Сумма товаров" (2026-09-04, Nastya's Мастера table request)
+    spec_service_count = defaultdict(int)  # staff_name -> count of service LINES (not distinct visits) — 2026-10-07, ЗП-сверка
     goods_seen = {}  # dedup by goods_transactions line id — a shared visit can repeat a line across staff records
 
     for r in records:
@@ -529,6 +534,7 @@ def month_metrics(ym):
             services_revenue += paid
             spec_revenue[staff_name] += paid
             spec_visits[staff_name].add(vid)
+            spec_service_count[staff_name] += 1
             cat_id = SERVICE_CAT.get(s["id"])
             cat_name = CAT_TITLE.get(cat_id, "Без категории")
             _is_set_fresh_line = (r["id"], _si) in set_fresh_keys
@@ -707,6 +713,8 @@ def month_metrics(ym):
 
     specialists = sorted(
         [{"name": n, "revenue": round(v), "avgCheck": round(v/len(spec_visits[n])) if spec_visits[n] else 0, "visits": len(spec_visits[n]),
+          "serviceCount": spec_service_count.get(n, 0),
+          "avgCheckPerService": round(v/spec_service_count[n]) if spec_service_count.get(n) else 0,
           "newClients": sum(1 for is_new in spec_clients_seen[n].values() if is_new),
           "repeatClients": sum(1 for is_new in spec_clients_seen[n].values() if not is_new),
           "goodsRevenue": round(spec_goods_revenue.get(n, 0)),
