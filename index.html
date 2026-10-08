@@ -1011,18 +1011,25 @@ function renderBudgetPlan(ym) {
   const rows = budget.rows.map(r => {
     const bold = r.indent === 0;
     const pad = 10 + r.indent * 16;
+    const hasFact = r.fact != null;
+    const left = hasFact ? r.amount - r.fact : null;
+    const overBudget = hasFact && left < 0;
     return `
       <tr>
         <td style="padding:7px 10px 7px ${pad}px; color:${bold ? 'var(--text-primary)' : 'var(--text-secondary)'}; font-weight:${bold ? 600 : 400}; border-bottom:1px solid var(--border); white-space:nowrap;">${r.label}</td>
         <td style="text-align:right; padding:7px 10px; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap;">${r.share}</td>
         <td style="text-align:right; padding:7px 10px; font-weight:${bold ? 600 : 400}; border-bottom:1px solid var(--border); white-space:nowrap;">${fmtRub(r.amount)}</td>
+        <td style="text-align:right; padding:7px 10px; font-weight:${bold ? 600 : 400}; border-bottom:1px solid var(--border); white-space:nowrap;">${hasFact ? fmtRub(r.fact) : ''}</td>
+        <td style="text-align:right; padding:7px 10px; font-weight:${bold ? 600 : 400}; color:${overBudget ? 'var(--text-danger)' : 'inherit'}; border-bottom:1px solid var(--border); white-space:nowrap;">${hasFact ? fmtRub(left) : ''}</td>
       </tr>`;
   }).join('');
   document.getElementById('budgetPlanTable').innerHTML = `
     <thead><tr>
       <th style="text-align:left; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Статья</th>
       <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Доля</th>
-      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Сумма</th>
+      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">План</th>
+      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Факт (ДДС)</th>
+      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Остаток</th>
     </tr></thead>
     <tbody>${rows}</tbody>`;
 }
@@ -1719,27 +1726,27 @@ function renderDiscountsView() {
 const BUDGET_PLAN = {
   '2026-10': {
     label: 'Октябрь 2026',
+    // fact = из ДДС (кассовый метод), на сегодня (месяц не закрыт, частичные данные).
+    // Расходники/Банк,налоги — факт только по основной категории (без разбивки на
+    // «- Препараты/космет.» и «- Банк»/«- Налоги», это были бы домыслы о пропорции).
     rows: [
-      { label: 'Выручка', share: '', amount: 2300000, indent: 0 },
-      { label: '- Эльвира', share: '', amount: 1300000, indent: 2 },
-      { label: '- Остальные', share: '', amount: 1000000, indent: 2 },
-      { label: 'ПРЯМЫЕ РАСХОДЫ', share: '45%', amount: 1035000, indent: 0 },
-      { label: 'ФОТ Мастера', share: '23%', amount: 529000, indent: 1 },
-      { label: 'Расходники всего', share: '22%', amount: 506000, indent: 1 },
+      { label: 'ПРЯМЫЕ РАСХОДЫ', share: '45%', amount: 1035000, fact: 293276, indent: 0 },
+      { label: 'ФОТ Мастера', share: '23%', amount: 529000, fact: 171782, indent: 1 },
+      { label: 'Расходники всего', share: '22%', amount: 506000, fact: 121494, indent: 1 },
       { label: '- Препараты/косметика', share: '21%', amount: 483000, indent: 2 },
       { label: '- Расходники одноразовые', share: '1%', amount: 23000, indent: 2 },
-      { label: 'КОСВЕННЫЕ РАСХОДЫ', share: '39%', amount: 1019000, indent: 0 },
-      { label: 'ФОТ Остальные', share: '18%', amount: 414000, indent: 1 },
-      { label: 'Закуп косметики на продажу', share: '7%', amount: 161000, indent: 1 },
-      { label: 'Банк, налоги', share: '5%', amount: 115000, indent: 1 },
+      { label: 'КОСВЕННЫЕ РАСХОДЫ', share: '39%', amount: 1019000, fact: 488745, indent: 0 },
+      { label: 'ФОТ Остальные', share: '18%', amount: 414000, fact: 69926, indent: 1 },
+      { label: 'Закуп косметики на продажу', share: '7%', amount: 161000, fact: 253830, indent: 1 },
+      { label: 'Банк, налоги', share: '5%', amount: 115000, fact: 153722, indent: 1 },
       { label: '- Банк', share: '1%', amount: 23000, indent: 2 },
       { label: '- Налоги', share: '', amount: 92000, indent: 2 },
-      { label: 'Обучение и HR', share: '3%', amount: 69000, indent: 1 },
-      { label: 'Маркетинг', share: '1%', amount: 23000, indent: 1 },
-      { label: 'Хоз. и санитарные нужды', share: '2%', amount: 46000, indent: 1 },
-      { label: 'IT, связь и сервисы', share: '2%', amount: 46000, indent: 1 },
-      { label: 'Прочее', share: '', amount: 145000, indent: 1 },
-      { label: 'ИТОГО РАСХОДЫ', share: '', amount: 2054000, indent: 0 },
+      { label: 'Обучение и HR', share: '3%', amount: 69000, fact: 0, indent: 1 },
+      { label: 'Маркетинг', share: '1%', amount: 23000, fact: 6500, indent: 1 },
+      { label: 'Хоз. и санитарные нужды', share: '2%', amount: 46000, fact: 3100, indent: 1 },
+      { label: 'IT, связь и сервисы', share: '2%', amount: 46000, fact: 500, indent: 1 },
+      { label: 'Прочее', share: '', amount: 145000, fact: 1167, indent: 1 },
+      { label: 'ИТОГО РАСХОДЫ', share: '', amount: 2054000, fact: 782021, indent: 0 },
       { label: 'ЧИСТАЯ ПРИБЫЛЬ', share: '', amount: 300000, indent: 0 },
     ],
   },
