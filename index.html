@@ -428,6 +428,14 @@
         <div id="planFactRows" style="display:flex; flex-direction:column; gap:12px;"></div>
       </div>
 
+      <div class="card" id="budgetPlanCard" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+          <div style="font-size:13px; font-weight:600;">Бюджет-план по статьям</div>
+          <div id="budgetPlanSub" style="font-size:12px; color:var(--text-muted);"></div>
+        </div>
+        <div style="overflow-x:auto;"><table id="budgetPlanTable" style="width:100%; border-collapse:collapse; font-size:13px;"></table></div>
+      </div>
+
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
           <div style="font-size:13px; font-weight:600;">Норма vs Факт</div>
@@ -990,6 +998,33 @@ function renderPlanFact(ym) {
         <div class="bar-track"><div class="bar-fill" style="width:${Math.min(pct,100)}%; background:${barColor};"></div></div>
       </div>`;
   }).join('');
+}
+function renderBudgetPlan(ym) {
+  const card = document.getElementById('budgetPlanCard');
+  const budget = BUDGET_PLAN[ym];
+  if (!budget) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  document.getElementById('budgetPlanSub').textContent = budget.label;
+  const rows = budget.rows.map(r => {
+    const bold = r.indent === 0;
+    const pad = 10 + r.indent * 16;
+    return `
+      <tr>
+        <td style="padding:7px 10px 7px ${pad}px; color:${bold ? 'var(--text-primary)' : 'var(--text-secondary)'}; font-weight:${bold ? 600 : 400}; border-bottom:1px solid var(--border); white-space:nowrap;">${r.label}</td>
+        <td style="text-align:right; padding:7px 10px; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap;">${r.share}</td>
+        <td style="text-align:right; padding:7px 10px; font-weight:${bold ? 600 : 400}; border-bottom:1px solid var(--border); white-space:nowrap;">${fmtRub(r.amount)}</td>
+      </tr>`;
+  }).join('');
+  document.getElementById('budgetPlanTable').innerHTML = `
+    <thead><tr>
+      <th style="text-align:left; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Статья</th>
+      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Доля</th>
+      <th style="text-align:right; padding:7px 10px; font-size:12px; color:var(--text-muted); border-bottom:1px solid var(--border);">Сумма</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>`;
 }
 
 /* ====================== insight — собирается из реальных цифр месяца ====================== */
@@ -1679,6 +1714,37 @@ function renderDiscountsView() {
     </tbody>`;
 }
 
+// Бюджет-план по статьям (2026-10-08) — ручной ввод, Настя строит в отдельном Google Sheet
+// и присылает по готовности. indent 0 = итоговая строка (жирным), 1 = статья, 2 = подстатья.
+const BUDGET_PLAN = {
+  '2026-10': {
+    label: 'Октябрь 2026',
+    rows: [
+      { label: 'Выручка', share: '', amount: 2300000, indent: 0 },
+      { label: '- Эльвира', share: '', amount: 1300000, indent: 2 },
+      { label: '- Остальные', share: '', amount: 1000000, indent: 2 },
+      { label: 'ПРЯМЫЕ РАСХОДЫ', share: '45%', amount: 1035000, indent: 0 },
+      { label: 'ФОТ Мастера', share: '23%', amount: 529000, indent: 1 },
+      { label: 'Расходники всего', share: '22%', amount: 506000, indent: 1 },
+      { label: '- Препараты/косметика', share: '21%', amount: 483000, indent: 2 },
+      { label: '- Расходники одноразовые', share: '1%', amount: 23000, indent: 2 },
+      { label: 'КОСВЕННЫЕ РАСХОДЫ', share: '39%', amount: 1019000, indent: 0 },
+      { label: 'ФОТ Остальные', share: '18%', amount: 414000, indent: 1 },
+      { label: 'Закуп косметики на продажу', share: '7%', amount: 161000, indent: 1 },
+      { label: 'Банк, налоги', share: '5%', amount: 115000, indent: 1 },
+      { label: '- Банк', share: '1%', amount: 23000, indent: 2 },
+      { label: '- Налоги', share: '', amount: 92000, indent: 2 },
+      { label: 'Обучение и HR', share: '3%', amount: 69000, indent: 1 },
+      { label: 'Маркетинг', share: '1%', amount: 23000, indent: 1 },
+      { label: 'Хоз. и санитарные нужды', share: '2%', amount: 46000, indent: 1 },
+      { label: 'IT, связь и сервисы', share: '2%', amount: 46000, indent: 1 },
+      { label: 'Прочее', share: '', amount: 145000, indent: 1 },
+      { label: 'ИТОГО РАСХОДЫ', share: '', amount: 2054000, indent: 0 },
+      { label: 'ЧИСТАЯ ПРИБЫЛЬ', share: '', amount: 300000, indent: 0 },
+    ],
+  },
+};
+
 // Факт по метрикам, которых нет в YClients (маржинальность, ФОТ, структура расходов) —
 // заполняется вручную по мере того, как Настя присылает P&L/Adesk-выгрузки (2026-09-23).
 // value: null = ещё не заполнено, month: подпись месяца, к которому относится факт.
@@ -1702,6 +1768,7 @@ const GOALS_FACT_MANUAL = {
 
 function renderGoalsView() {
   renderPlanFact(currentMonth);
+  renderBudgetPlan(currentMonth);
   const cur = MONTHLY_DATA[currentMonth];
   const totalClients = cur.newClients + cur.repeatClients;
   const repeatPct = totalClients ? Math.round(cur.repeatClients / totalClients * 100 * 10) / 10 : 0;
