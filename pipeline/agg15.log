@@ -1,0 +1,44 @@
+{
+  "cohortSize": 55,
+  "returned": 37,
+  "returnPct": 67.3,
+  "windowClosed": true
+}
+[
+  {
+    "name": "Эльвира Аминева",
+    "cohortSize": 28,
+    "returnedSame": 14,
+    "loyaltyPct": 50.0,
+    "windowClosed": true
+  },
+  {
+    "name": "Татьяна Колегова",
+    "cohortSize": 12,
+    "returnedSame": 9,
+    "loyaltyPct": 75.0,
+    "windowClosed": true
+  },
+  {
+    "name": "Анна",
+    "cohortSize": 6,
+    "returnedSame": 0,
+    "loyaltyPct": 0.0,
+    "windowClosed": true
+  },
+  {
+    "name": "Влада Щукина",
+    "cohortSize": 5,
+    "returnedSame": 4,
+    "loyaltyPct": 80.0,
+    "windowClosed": true
+  },
+  {
+    "name": "Александра Дмитрюкова",
+    "cohortSize": 4,
+    "returnedSame": 1,
+    "loyaltyPct": 25.0,
+    "windowClosed": true
+  }
+]
+embedded MONTHLY_DATA + GOODS_STOCK + INVENTORY_HISTORY into /root/agent-workspace/projects/elami-dashboard/index.html
