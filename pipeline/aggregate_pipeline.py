@@ -143,7 +143,7 @@ for _ym, _raw in MONTHLY_RAW.items():
 # (date + amount — a single certificate can be split across many redemptions). Matched into
 # the ledger via phone number (reliable, present on both sides) rather than name (found
 # comment/name text to be unreliable elsewhere in this project already).
-CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20260101_20261012.csv"
+CERTIFICATES_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/certificates_20260101_20261019.csv"
 import csv as _csv
 _cert_credits_by_phone = defaultdict(list)  # phone -> [(sale_date, nominal), ...]
 # Redemption events (Дата списания + Сумма списания) — a certificate can be redeemed across
@@ -185,7 +185,7 @@ for _ym, _raw in MONTHLY_RAW.items():
 # Товары page. Nastya's regular "Абонементы" export (Аналитика → Абонементы) has the real
 # title, so match by (phone, sale date, price) — the same triple that uniquely identifies a
 # sale in that report, no other shared key available.
-ABONEMENTS_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/abonements_20260101_20261012.csv"
+ABONEMENTS_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/abonements_20260101_20261019.csv"
 _abon_name_by_key = {}  # (phone, "YYYY-MM-DD", round(amount)) -> title
 with open(ABONEMENTS_CSV, encoding="utf-8") as _f:
     _abon_rows = list(_csv.reader(_f))
@@ -268,7 +268,7 @@ for _cid in set(list(_credits_by_client.keys()) + list(_debits_by_client.keys())
 # regardless of the paid>0 condition that normally excludes partial gaps.
 # File is optional (only exists for date ranges Nastya has actually sent) — matching silently
 # no-ops for clients/dates outside its coverage, same as the certificates CSV beforehand.
-ACCOUNT_WITHDRAWALS_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/schet_operations_20260901_20261012.csv"
+ACCOUNT_WITHDRAWALS_CSV = "/root/agent-workspace/projects/elami-dashboard/pipeline/schet_operations_20260901_20261019.csv"
 _withdrawals_by_phone_date = defaultdict(float)  # (phone, "YYYY-MM-DD") -> total withdrawn that day
 try:
     with open(ACCOUNT_WITHDRAWALS_CSV, encoding="utf-8") as _f:
