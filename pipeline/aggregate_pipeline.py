@@ -663,7 +663,15 @@ def month_metrics(ym):
                 if g_gap > 0:
                     discount_total += g_gap
                     labels = r.get("record_labels") or []
-                    if labels:
+                    # Nastya (2026-10-27): товар с символической оплатой (0-1₽) при
+                    # реальной рознице (price) — это подарок по акции "3 покупаешь, 1 в
+                    # подарок" (клиентские дни и аналогичные промо), не ошибка и не
+                    # случайная скидка без тега. YClients не даёт отдельной метки на
+                    # goods_transactions, поэтому определяем по самому факту "почти
+                    # бесплатно" и заводим отдельную категорию скидок.
+                    if (g.get("cost_to_pay", 0) or 0) <= 1:
+                        discount_by_label["Акция 3+1"] += g_gap
+                    elif labels:
                         for lbl in labels:
                             discount_by_label[lbl["title"]] += g_gap
                     else:
